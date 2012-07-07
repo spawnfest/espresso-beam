@@ -1,5 +1,8 @@
 all: app
 
+start:
+	sh start.sh
+
 app: get-deps
 	@./rebar compile
 
