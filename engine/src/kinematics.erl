@@ -95,7 +95,7 @@ pursue(Kinematics, Target) ->
 %% 202.5 247.5 -> 225
 %% 247.5 292.5 -> 270
 %% 292.5 337.5 -> 315
-normalize_orientation(Orient) when (Orient >= 337.5) and (Orient < 22.5) -> 0.0;
+normalize_orientation(Orient) when (Orient >= 337.5) or (Orient < 22.5) -> 0.0;
 normalize_orientation(Orient) when (Orient >= 22.5) and (Orient < 67.5) -> 45.0;
 normalize_orientation(Orient) when (Orient >= 67.5) and (Orient < 112.5) -> 90.0;
 normalize_orientation(Orient) when (Orient >= 112.5) and (Orient < 157.5) -> 135.0;

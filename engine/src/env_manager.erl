@@ -116,8 +116,14 @@ handle_call({allocate_me, ActorPid, ActorType}, _From, State) ->
 handle_call({give_me_close_cells_status, ActorPid}, _From, State) ->
     Env = State#state.environment,
     Actors = State#state.actors,
-    {_, _, Location} = proplists:lookup(ActorPid, Actors),
-    
+
+    [Actor] = lists:filter(fun(A) ->
+                                Pid = A#actor.pid,
+                                Pid == ActorPid
+                            end, Actors),
+
+    Location = Actor#actor.location,
+
     %% get nearby locations
     NearbyLocations = get_nearby_locations(Location, 
 					   Env#environment.rows,
@@ -126,10 +132,12 @@ handle_call({give_me_close_cells_status, ActorPid}, _From, State) ->
     %% find out what are the close actors
     %% [{Pos, [ListOfActors]}]
     Reply = 
-	list:foldl(fun(Loc, Acc0) ->
+	lists:foldl(fun(Loc, Acc0) ->
 			   [{Loc, 
 			     lists:foldl(fun(A, Acc1) ->
-						 {P, T, ActorPos} = A,
+                         P = A#actor.pid,
+                         T = A#actor.type,
+                         ActorPos = A#actor.location,
 						 if Loc == ActorPos -> [{P,T}|Acc1];
 						    true -> Acc1
 						 end
