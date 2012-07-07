@@ -47,9 +47,7 @@ wander(Kinematics, CurPosition, Nearby) ->
 %% @end
 %%--------------------------------------------------------------------
 seek(Kinematics, Target) ->
-    %% !FIXME to be implemented
-    PrevOrientation = Kinematics#actor_kin.orientation,
-    {nil, Kinematics}.
+    {Target, Kinematics}.
 
 
 %%--------------------------------------------------------------------
