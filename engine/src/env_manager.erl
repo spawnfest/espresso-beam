@@ -25,7 +25,7 @@
 
 -define(SERVER, ?MODULE). 
 
--record(state, {actors, environment}).
+-record(state, {actors, environment, pending_updates}).
 -record(actor, {pid, type, location}).
 -record(environment, { rows=nil,
 		       cols=nil
@@ -53,15 +53,15 @@ give_me_close_cells_status(ActorPid) ->
     gen_server:call(?SERVER, {give_me_close_cells_status, ActorPid}).
 
 update_me(ActorPid, NewPos) ->
-    gen_server:call(?SERVER, {update_me, ActorPid}).
+    gen_server:cast(?SERVER, {update_me, ActorPid}).
 
 deallocate_me(ActorPid) ->
     gen_server:cast(?SERVER, {deallocate_me, ActorPid}).
 
-%% !FIXME loop needed
+%% !FIXME loop needed -> set pending_updates!
 
 %%%===================================================================
-%%% gen_server callbacks
+%%% gen_server callacks
 %%%===================================================================
 
 %%--------------------------------------------------------------------
@@ -86,7 +86,8 @@ init([]) ->
 		       },
     
     {ok, #state{actors=[],
-		environment=Env
+		environment=Env,
+		pending_updates=0
 	       }}.
 
 %%--------------------------------------------------------------------
@@ -161,6 +162,35 @@ handle_call(_Request, _From, State) ->
 handle_cast({deallocate_me, ActorPid}, #state{actors=Actors} = State) ->
     NewActors = lists:keydelete(ActorPid, #actor.pid, Actors),
     {noreply, State#state{actors=NewActors}};
+
+handle_cast({update_me, ActorPid, NewPos}, State) ->
+    %% update the position
+    Actors = State#state.actors,
+    {_, _, Location} = proplists:lookup(ActorPid, Actors),
+    
+    NewActors = 
+	lists:foldl(fun({P, T, L}, Acc) ->
+			    if P == ActorPid -> [{P, T, NewPos}|Acc];
+			       true -> [{P, T, L}|Acc]
+			    end
+		    end,
+		    [],
+		    Actors),
+    
+    %% now, let's decrement the counter of pending updates
+    NewPendingUpds = State#state.pending_updates - 1,
+    
+    SurvivedActors = 
+	if NewPendingUpds == 0 -> perform_life_cycle(NewActors);
+	   true -> NewActors
+	end,
+
+    NewState = State#state { actors=SurvivedActors,
+			     pending_updates=NewPendingUpds
+			   },
+
+    {noreply, NewState};
+
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -251,14 +281,28 @@ filter_out_invalid_locations([{X,Y}|Rest], MaxRows, MaxCols, Acc) ->
 filter_out_invalid_locations(ListOfPos, MaxRows, MaxCols) ->
     filter_out_invalid_locations(ListOfPos, MaxRows, MaxCols, []).
     
-    
-    
-    
-    
-	     
-    
-    
 
+perform_life_cycle(Actors) ->
+    perform_life_cycle(Actors, Actors).
 
+perform_life_cycle([], Actors) -> Actors;
+perform_life_cycle([{Actor, Type, Location}|Rest], Actors) -> 
+    CellStatus = 
+	lists:foldl(fun({A, T, L}, Acc) ->
+			    if (Location == L) and 
+			       (Actor =/= A) -> [{A, T}|Acc];
+			       true -> Acc
+			    end
+		    end,
+		    [],
+		    Actors),
 
+    Reply = Type:do_something(Actor, CellStatus),
+	
+    %% delete the actor, if it died
+    NewActors = 
+	case Reply of deallocate_me -> proplists:delete(Actor, Actors);
+	    _ -> Actors
+	end,
 
+    perform_life_cycle(Rest, NewActors).
