@@ -113,7 +113,7 @@ handle_call({allocate_me, ActorPid, ActorType}, _From, State) ->
     {reply, Location, State#state{actors=[Actor|Actors]}};
 
 
-handle_call({give_me_close_cells_status, ActorPid, ActorType}, _From, State) ->
+handle_call({give_me_close_cells_status, ActorPid}, _From, State) ->
     Env = State#state.environment,
     Actors = State#state.actors,
     {_, _, Location} = proplists:lookup(ActorPid, Actors),

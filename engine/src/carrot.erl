@@ -85,7 +85,7 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 idle({next_step}, State) ->
-	{reply, ok, idle, State};
+	{next_state, idle, State};
 idle({eaten, Pid}, State) ->
     io:format("Carrot ~p has been eaten by ~p. State was: ~p~n", 
                 [self(), Pid, State]),

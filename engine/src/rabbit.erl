@@ -103,7 +103,9 @@ idle({next_step}, State) ->
     
     %% ask the env_manager for the nearby cells
     Nearby = env_manager:give_me_close_cells_status(self()),
-    
+   
+    io:format("Nearby:~n~p~n", [Nearby]),
+ 
     %% check the nearby cells for carrots or wolves
     Wolves = lists:filter(fun({{X,Y}, Content}) ->
 				  lists:any(fun(What) ->
