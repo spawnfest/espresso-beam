@@ -58,6 +58,8 @@ update_me(ActorPid, NewPos) ->
 deallocate_me(ActorPid) ->
     gen_server:cast(?SERVER, {deallocate_me, ActorPid}).
 
+%% !FIXME loop needed
+
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -108,6 +110,36 @@ handle_call({allocate_me, ActorPid, ActorType}, _From, State) ->
     
     Actor = #actor{pid=ActorPid, type=ActorType, location=Location},
     {reply, Location, State#state{actors=[Actor|Actors]}};
+
+
+handle_call({give_me_close_cells_status, ActorPid, ActorType}, _From, State) ->
+    Env = State#state.environment,
+    Actors = State#state.actors,
+    {_, _, Location} = proplists:lookup(ActorPid, Actors),
+    
+    %% get nearby locations
+    NearbyLocations = get_nearby_locations(Location, 
+					   Env#environment.rows,
+					   Env#environment.cols),
+    
+    %% find out what are the close actors
+    %% [{Pos, [ListOfActors]}]
+    Reply = 
+	list:foldl(fun(Loc, Acc0) ->
+			   [{Loc, 
+			     lists:foldl(fun(A, Acc1) ->
+						 {P, T, ActorPos} = A,
+						 if Loc == ActorPos -> [{P,T}|Acc1];
+						    true -> Acc1
+						 end
+					 end,
+					 [],
+					 Actors)} | Acc0]
+		   end,
+		   [],
+		   NearbyLocations),
+
+    {reply, Reply, State};
 
 
 handle_call(_Request, _From, State) ->
@@ -194,6 +226,33 @@ get_free_position(Environment, _Actors) ->
     %% 	_ ->
     %% 	    RandomLocation
     %% end.
+    
+get_nearby_locations({X,Y}, MaxRows, MaxCols) ->
+    %% get all nearby locations
+    NB = [{Z,A} || Z <- [X-1, X, X+1],
+		   A <- [Y-1, Y, Y+1]],
+    
+    %% discard all invalid positions
+    filter_out_invalid_locations(NB, MaxRows, MaxCols).
+
+
+filter_out_invalid_locations([], MaxRows, MaxCols, Acc) ->
+    lists:reverse(Acc);
+
+filter_out_invalid_locations([{X,Y}|Rest], MaxRows, MaxCols, Acc) ->
+    if (X < 0) or (Y < 0) or
+       (X > MaxCols) or (Y > MaxRows) -> 
+	    filter_out_invalid_locations(Rest, MaxRows, MaxCols, Acc);
+       
+       true ->
+	    filter_out_invalid_locations(Rest, MaxRows, MaxCols, [{X,Y}|Acc])
+    end.
+
+filter_out_invalid_locations(ListOfPos, MaxRows, MaxCols) ->
+    filter_out_invalid_locations(ListOfPos, MaxRows, MaxCols, []).
+    
+    
+    
     
     
 	     
