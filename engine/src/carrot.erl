@@ -63,8 +63,7 @@ eat(CarrotPid, EaterPid) ->
 %%--------------------------------------------------------------------
 init([]) ->
     io:format("Spawned new carrot: ~p ~n", [self()]),
-    %%Pos = env_manager:allocate_me(self(), carrot),
-    Pos = {0,0}, %% FIX ME
+    Pos = env_manager:allocate_me(self(), carrot),
     {ok, idle, #state{position=Pos}}.
 
 %%--------------------------------------------------------------------
@@ -87,7 +86,7 @@ idle({next_step}, State) ->
 idle({eaten, Pid}, State) ->
     io:format("Carrot ~p has been eaten by ~p. State was: ~p~n", 
                 [self(), Pid, State]),
-    %%env_manager:deallocate_me(self()),
+    env_manager:deallocate_me(self()),
     {stop, normal, State}.
 
 idle({do_something, _OtherActors}, _From, State) ->

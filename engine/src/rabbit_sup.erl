@@ -84,7 +84,8 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 start_rabbits() ->
-    [start_rabbit() || _ <- lists:seq(1, ?NUM_RABBITS)],
+    NumRabbits = config_manager:lookup(num_rabbits),
+    [start_rabbit() || _ <- lists:seq(1, NumRabbits)],
     ok.
 
 %%--------------------------------------------------------------------

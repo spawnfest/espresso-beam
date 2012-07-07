@@ -59,13 +59,15 @@ seek(Kinematics, Target) ->
 %%--------------------------------------------------------------------
 flee(Kinematics, Target) ->
     PrevOrientation = Kinematics#actor_kin.orientation,
-    NextPos = orientation2position(PrevOrientation),
+    %% FIX ME
+    NextPos = orientation2position({0,0}, PrevOrientation),
     
-    if NewPos == Target ->
+    if NextPos == Target ->
 	    %% no! avoid it!
 	    ok;
        true ->
-	    {, Kinematics}
+	    %% fix me
+        {Target, Kinematics}
     end.
 
 

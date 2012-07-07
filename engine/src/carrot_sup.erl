@@ -83,7 +83,8 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 start_carrots() ->
-    [start_carrot() || _ <- lists:seq(1, ?NUM_CARROTS)],
+    NumCarrots = config_manager:lookup(num_carrots),
+    [start_carrot() || _ <- lists:seq(1, NumCarrots)],
     ok.
 
 %%--------------------------------------------------------------------

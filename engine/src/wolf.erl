@@ -16,8 +16,8 @@
 -export([start_link/0]).
 
 %% gen_fsm callbacks
--export([init/1, state_name/2, state_name/3, handle_event/3,
-	 handle_sync_event/4, handle_info/3, terminate/3, code_change/4]).
+-export([init/1, idle/2, wait/3, handle_event/3, handle_sync_event/4, handle_info/3, 
+         terminate/3, code_change/4]).
 
 -define(SERVER, ?MODULE).
 
@@ -148,7 +148,7 @@ idle({next_step}, State) ->
 
 
 %% wait for a list of other actors who are in our same cell
-wait({do_something, OtherActors}, _From, State) ->
+wait({do_something, _OtherActors}, _From, State) ->
     NewState = State,
     %% %% get my health status
     %% Health = State#state.health,
@@ -185,28 +185,6 @@ wait({do_something, OtherActors}, _From, State) ->
     %% 	    {reply, ok, idle, NewState}
     %% end.
     {reply, ok, idle, NewState}.
-
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% There should be one instance of this function for each possible
-%% state name. Whenever a gen_fsm receives an event sent using
-%% gen_fsm:sync_send_event/[2,3], the instance of this function with
-%% the same name as the current state name StateName is called to
-%% handle the event.
-%%
-%% @spec state_name(Event, From, State) ->
-%%                   {next_state, NextStateName, NextState} |
-%%                   {next_state, NextStateName, NextState, Timeout} |
-%%                   {reply, Reply, NextStateName, NextState} |
-%%                   {reply, Reply, NextStateName, NextState, Timeout} |
-%%                   {stop, Reason, NewState} |
-%%                   {stop, Reason, Reply, NewState}
-%% @end
-%%--------------------------------------------------------------------
-state_name(_Event, _From, State) ->
-    Reply = ok,
-    {reply, Reply, state_name, State}.
 
 %%--------------------------------------------------------------------
 %% @private
