@@ -6,11 +6,7 @@
         {registered, [espresso_beam_sup, wolf_sup, rabbit_sup, carrot_sup, env_manager, config_manager]},
         {applications, [
                 kernel,
-                stdlib,
-                crypto,
-                public_key,
-                ssl,
-                cowboy
+                stdlib
         ]},
         {env, []},
         {mod, {espresso_beam, []}}
