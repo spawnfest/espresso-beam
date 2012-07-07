@@ -81,7 +81,7 @@ init([]) ->
     Rows = config_manager:lookup(rows),
     Columns = config_manager:lookup(columns),
     Env = #environment{rows = Rows,
-		       cols = columns
+		       cols = Columns
 		       },
     
     {ok, #state{actors=[],
@@ -256,8 +256,8 @@ get_free_position(Environment, _Actors) ->
     Rows = Environment#environment.rows,
     Cols = Environment#environment.cols,
     
-    RandomLocation = { random:uniform(Rows), 
-		       random:uniform(Cols) }.
+    RandomLocation = { random:uniform(Rows) - 1, 
+		       random:uniform(Cols) - 1 }.
 
 
     %% %% check whether the location is already taken
