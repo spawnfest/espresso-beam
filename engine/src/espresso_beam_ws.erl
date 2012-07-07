@@ -62,8 +62,12 @@ websocket_init(_Any, Req, []) ->
 %% @end
 %%-------------------------------------------------------------------- 
 websocket_handle({text, <<"step">>}, Req, State) ->
-    Reply = <<"will make all actors to take a step">>,
-    {reply, {text, Reply}, Req, State, hibernate};
+    env_manager:step(),
+    {ok, {text, <<"all the cool kids took a step">>}, Req, State, hibernate};
+
+websocket_handle({text, <<"stop">>}, Req, State) ->
+    application:stop(espresso_beam),
+    {ok, Req, State, hibernate};
 
 websocket_handle(_Any, Req, State) ->
     %% here we handle for example binaries
@@ -83,6 +87,14 @@ websocket_info(_Info, Req, State) ->
 websocket_terminate(_Reason, _Req, _State) ->
     ok.
 
+%%--------------------------------------------------------------------
+%% @doc
+%% This function returns the default html/javascript page.
+%%
+%% @spec get_page() -> binary
+%% @end
+%%-------------------------------------------------------------------- 
+
 get_page() ->
 <<"<!DOCTYPE HTML>
 <html>
@@ -94,8 +106,7 @@ var output;
 
 function init() { 
     output = document.getElementById(\"output\"); 
-    testWebSocket(); 
-    writeToScreen(\"INITIALIZED\"); 
+    testWebSocket();  
 }  
 
 function testWebSocket() { 
@@ -107,11 +118,12 @@ function testWebSocket() {
 }  
 
 function onOpen(evt) { 
-    writeToScreen(\"CONNECTED\"); 
-    doSend(\"step\"); 
+    writeToScreen(\"Connection established with erlang engine.\"); 
 }  
 
-function onClose(evt) {     writeToScreen(evt); writeToScreen(\"DISCONNECTED\"); }  
+function onClose(evt) {     
+    writeToScreen(evt); writeToScreen(\"Disconnected from game engine.\"); 
+}  
 
 function onMessage(evt) { 
     writeToScreen('<span style=\"color: blue;\">RESPONSE: ' + evt.data+'</span>'); 
@@ -134,11 +146,23 @@ function writeToScreen(message) {
     output.appendChild(pre); 
 }  
 
+function stepFunction() {
+    setInterval(function() { doSend(\"step\") }, 1000);
+}
+
+function stopFunction() {
+    setInterval(function() { doSend(\"stop\") }, 1000);
+}
+
 window.addEventListener(\"load\", init, false);  
 </script>  
 </head>
 <body>
-    <h2>Espresso Beam</h2>  
+    <h2>Espresso Beam</h2>
+    <div>Click the button to start the simulation.</div>
+    <div><button onclick=\"stepFunction()\">start</button></div>
+    <div>Click the button to stop the simulation and shutdown the engine.</div>
+    <div><button onclick=\"stopFunction()\">stop</button></div>   
     <div id=\"output\"></div>
 </body>
 </html>">>.
