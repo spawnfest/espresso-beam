@@ -5,7 +5,7 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created :  7 Jul 2012 by Loris Fichera <loris.fichera@gmail.com
+%%% Created :  7 Jul 2012 by Loris Fichera <loris.fichera@gmail.com>
 %%%-------------------------------------------------------------------
 -module(kinematics).
 
@@ -28,16 +28,13 @@
 %% @spec wander(ActorKinematics, Nearby) -> NewPosition.
 %% @end
 %%--------------------------------------------------------------------
-
-
-
-wander(_ActorKinematics, CurPosition, Nearby) ->
+wander(Kinematics, CurPosition, Nearby) ->
     O = random:uniform(360),
     NewOrientation = normalize_orientation(O),
     NewPos = orientation2position(CurPosition, NewOrientation),
     
     case lists:any(fun({X,Y}) -> {X,Y} == NewPos end, Nearby) of
-	true -> NewPos;
+	true -> {NewPos, Kinematics};
 	_ -> wander(nil, CurPosition, Nearby)
     end.
 
@@ -46,32 +43,36 @@ wander(_ActorKinematics, CurPosition, Nearby) ->
 %% @doc
 %% Implements the seek behaviour.
 %%
-%% @spec seek(ActorKineamtics, Target) -> NewPosition.
+%% @spec seek(ActorKinematics, Target) -> NewPosition.
 %% @end
 %%--------------------------------------------------------------------
-seek(ActorKinematics, Target) ->
-    ok.
+seek(Kinematics, Target) ->
+    %% !FIXME to be implemented
+    PrevOrientation = Kinematics#actor_kin.orientation,
+    {nil, Kinematics}.
 
 
 %%--------------------------------------------------------------------
 %% @doc
 %% Implements the flee behaviour.
 %%
-%% @spec flee(ActorKineamtics, Target) -> NewPosition.
+%% @spec flee(ActorKinematics, Target) -> NewPosition.
 %% @end
 %%--------------------------------------------------------------------
-flee(ActorKinematics, Target) ->
-    ok.
+flee(Kinematics, Target) ->
+    %% !FIXME to be implemented
+    PrevOrientation = ActorKinematics#actor_kin.orientation,
+    {nil, Kinematics}.
 
 
 %%--------------------------------------------------------------------
 %% @doc
 %% Implements the pursue behaviour.
 %%
-%% @spec pursue(ActorKineamtics, Target) -> NewPosition.
+%% @spec pursue(ActorKinematics, Target) -> NewPosition.
 %% @end
 %%--------------------------------------------------------------------
-pursue(ActorKinematics, Target) ->
+pursue(Kinematics, Target) ->
     ok.
 
 
