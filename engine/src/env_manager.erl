@@ -212,7 +212,7 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
     
     DiedActors = 
 	if NewPendingUpds == 0 -> perform_life_cycle(NewActors);
-	   true -> NewActors
+	   true -> []
 	end,
 
     io:format("Died actors: ~p ~n", [DiedActors]),
@@ -348,10 +348,12 @@ filter_out_invalid_locations(ListOfPos, MaxRows, MaxCols) ->
     
 
 perform_life_cycle(Actors) ->
+    io:format("here~n"),
     perform_life_cycle(Actors, Actors, []).
 
 perform_life_cycle([], Actors, DiedActors) -> DiedActors;
 perform_life_cycle([GivenActor|Rest], Actors, DiedActors) -> 
+    io:format("here1~n"),
     Actor = GivenActor#actor.pid,
     Type = GivenActor#actor.type,
     Location = GivenActor#actor.location,
@@ -362,11 +364,11 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
 	lists:filter(fun(A) ->
 			     P = A#actor.pid,
 			     
-			     lists:any(fun(A1) ->
-					       P1 = A1#actor.pid,
-					       P1 == A1
-				       end,
-				       DiedActors)
+			     not lists:any(fun(A1) ->
+						   P1 = A1#actor.pid,
+						   P1 == A1
+					   end,
+					   DiedActors)
 		     end,
 		     Actors),
 
@@ -387,9 +389,12 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
     %% !FIXME try catch here?
     %% possibly, add it to the dieadactors list
     Reply = Type:do_something(Actor, CellStatus),
+
+    io:format("Reply received: ~p~n",[Reply]),
 	
     %% delete the actor, if it died
     case Reply of deallocate_me -> 
+
 	    lists:delete(Actor, Actors),
 	    perform_life_cycle(Rest, Actors, [Actor|DiedActors]);
 	_ -> 
