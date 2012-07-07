@@ -71,7 +71,9 @@ flee(Kinematics, Target) ->
 %% @end
 %%--------------------------------------------------------------------
 pursue(Kinematics, Target) ->
-    ok.
+    %% !FIXME to be extended when sensing_distance > 1
+    seek(Kinematics, Target).
+
 
 
 %%%===================================================================
