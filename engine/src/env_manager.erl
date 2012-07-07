@@ -246,8 +246,9 @@ handle_cast({step}, State) ->
     
     %% tell each actor to perform a time step
     lists:foreach(fun(ActorRecord) ->
-              T = ActorRecord#actor.type,
-              A = ActorRecord#actor.pid,
+			  T = ActorRecord#actor.type,
+			  A = ActorRecord#actor.pid,
+			  io:format("sending next_step to ~p~n",[A]),
 			  T:next_step(A)
 		  end,
 		  Actors),

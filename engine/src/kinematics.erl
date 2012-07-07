@@ -35,7 +35,8 @@ wander(Kinematics, CurPosition, Nearby) ->
     
     case lists:any(fun({X,Y}) -> {X,Y} == NewPos end, Nearby) of
 	true -> {NewPos, Kinematics};
-	_ -> wander(nil, CurPosition, Nearby)
+	_ -> {CurPosition, Kinematics} %% !FIXME
+	    %%nder(nil, CurPosition, Nearby)
     end.
 
 

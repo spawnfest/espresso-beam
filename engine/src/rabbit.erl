@@ -45,6 +45,7 @@ start_link() ->
     gen_fsm:start_link(?MODULE, [], []).
 
 next_step(Pid) ->
+    io:format("next step received by module~n"),
     gen_fsm:send_event(Pid, {next_step}).
 
 do_something(Pid, CellStatus) ->
@@ -126,6 +127,8 @@ idle({next_step}, State) ->
 					     Content)
 			      end,
 			   Nearby),
+
+    io:format("after sensing nearby cells~n"),
     
     %% according to the content of the nearby cells, take a new behaviour
     {NextPos, NewKin} = 
@@ -140,6 +143,8 @@ idle({next_step}, State) ->
 	   true ->
 		kinematics:wander(Kin, Pos, Nearby)
 	end,
+
+    io:format("after kinematics~n"),
     
     NewState = #state{
       position = NextPos,
@@ -148,6 +153,7 @@ idle({next_step}, State) ->
      },
 
     %% tell the env_manager the new_position
+    io:format("before the update_me~n"),
     env_manager:update_me(self(), NextPos),
     {next_state, wait, NewState}.
 
