@@ -58,9 +58,15 @@ seek(Kinematics, Target) ->
 %% @end
 %%--------------------------------------------------------------------
 flee(Kinematics, Target) ->
-    %% !FIXME to be implemented
     PrevOrientation = Kinematics#actor_kin.orientation,
-    {nil, Kinematics}.
+    NextPos = orientation2position(PrevOrientation),
+    
+    if NewPos == Target ->
+	    %% no! avoid it!
+	    ok;
+       true ->
+	    {, Kinematics}
+    end.
 
 
 %%--------------------------------------------------------------------
