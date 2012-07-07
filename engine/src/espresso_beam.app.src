@@ -1,0 +1,13 @@
+{application, espresso_beam, [
+        {description, "An artificial balanced world."},
+        {vsn, "0.1.0"},
+        {modules, [espresso_beam, espresso_beam_sup, wolf_sup, rabbit_sup, carrot_sup, 
+                   wolf, rabbit, carrot, env_manager]},
+        {registered, [espresso_beam_sup, wolf_sup, rabbit_sup, carrot_sup, env_manager]},
+        {applications, [
+                kernel,
+                stdlib
+        ]},
+        {env, []},
+        {mod, {espresso_beam, []}}
+]}.
