@@ -25,8 +25,11 @@
 
 -define(SERVER, ?MODULE). 
 
--record(state, {actors}).
+-record(state, {actors, environment}).
 -record(actor, {pid, type, location}).
+-record(environment, { rows=nil,
+		       cols=nil,
+		       held_positions}).
 
 %%%===================================================================
 %%% API
@@ -72,7 +75,16 @@ deallocate_me(ActorPid) ->
 init([]) ->
     <<A:32, B:32, C:32>> = crypto:rand_bytes(12),
     random:seed(A,B,C),
-    {ok, #state{actors=[]}}.
+
+    Rows = config_manager:lookup(rows),
+    Columns = config_manager:lookup(columns),
+    Env = #environment{rows = Rows,
+		       cols = columns,
+		       held_positions = []},
+    
+    {ok, #state{actors=[],
+		environment=Env
+	       }}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -89,8 +101,12 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 %% !FIXME to be implemented
-handle_call({allocate_me, ActorPid, ActorType}, _From, #state{actors=Actors} = State) ->
-    Location = get_free_location(Actors),
+handle_call({allocate_me, ActorPid, ActorType}, _From, State) ->
+
+    Env = State#state.environment,
+    Actors = State#state.actors,
+
+    Location = get_free_position(Env),
     Actor = #actor{pid=ActorPid, type=ActorType, location=Location},
     {reply, Location, State#state{actors=[Actor|Actors]}};
 
@@ -158,17 +174,30 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-get_free_location(Actors) ->
-    %% !FIXME to be implemented
-    %% RandomLocation = #location{x=random:uniform(?ROWS), 
-    %% 			       y=random:uniform(?COLUMNS)},
-    %% case lists:keysearch(RandomLocation, #actor.location, Actors) of
-    %% 	false ->
-    %% 	    RandomLocation;
-    %% 	_Actor ->
-    %% 	    get_free_location(Actors)
-    %% end.
-    ok.
+get_free_position(Environment) ->
+    HeldPositions = Environment#environment.held_positions,
+    Rows = Environment#environment.rows,
+    Cols = Environment#environment.cols,
+    
+    RandomLocation = { random:uniform(Rows), 
+		       random:uniform(Cols) },
+    
+    %% check whether the location is already taken
+    IsTaken = lists:any(fun({{X,Y}, What}) ->
+				{X,Y} == RandomLocation
+			end,
+			HeldPositions),
+    
+    case IsTaken of true ->
+	    get_free_position(Environment);
+	_ ->
+	    RandomLocation
+    end.
+    
+    
+	     
+    
+    
 
 
 
