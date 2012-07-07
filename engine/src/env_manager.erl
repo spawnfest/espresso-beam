@@ -53,7 +53,7 @@ give_me_close_cells_status(ActorPid) ->
     gen_server:call(?SERVER, {give_me_close_cells_status, ActorPid}).
 
 update_me(ActorPid, NewPos) ->
-    gen_server:cast(?SERVER, {update_me, ActorPid}).
+    gen_server:cast(?SERVER, {update_me, ActorPid, NewPos}).
 
 deallocate_me(ActorPid) ->
     gen_server:cast(?SERVER, {deallocate_me, ActorPid}).
@@ -172,14 +172,28 @@ handle_cast({deallocate_me, ActorPid}, #state{actors=Actors} = State) ->
 
 
 handle_cast({update_me, ActorPid, NewPos}, State) ->
+    io:format("Inside update_me", []),
     %% update the position
     Actors = State#state.actors,
-    {_, _, Location} = proplists:lookup(ActorPid, Actors),
+
+    [Actor] = lists:filter(fun(A) ->
+                                Pid = A#actor.pid,
+                                Pid == ActorPid
+                            end, Actors),
+    Location = Actor#actor.location,
     
     NewActors = 
-	lists:foldl(fun({P, T, L}, Acc) ->
+	lists:foldl(fun(A, Acc) ->
+                P = A#actor.pid,
+                T = A#actor.type,
+                L = A#actor.location,
 			    if P == ActorPid -> [{P, T, NewPos}|Acc];
-			       true -> [{P, T, L}|Acc]
+                   true -> 
+                        NewActor = #actor{ 
+                                    pid=P, 
+                                    type=T, 
+                                    location=L },
+                        [NewActor|Acc]
 			    end
 		    end,
 		    [],
@@ -187,6 +201,8 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
     
     %% now, let's decrement the counter of pending updates
     NewPendingUpds = State#state.pending_updates - 1,
+
+    io:format("Updates pending --> ~p~n", [NewPendingUpds]),
     
     SurvivedActors = 
 	if NewPendingUpds == 0 -> perform_life_cycle(NewActors);
@@ -219,6 +235,7 @@ handle_cast({step}, State) ->
 
 
 handle_cast(_Msg, State) ->
+    io:format("Default", []),
     {noreply, State}.
 
 %%--------------------------------------------------------------------
@@ -312,7 +329,10 @@ perform_life_cycle(Actors) ->
     perform_life_cycle(Actors, Actors).
 
 perform_life_cycle([], Actors) -> Actors;
-perform_life_cycle([{Actor, Type, Location}|Rest], Actors) -> 
+perform_life_cycle([GivenActor|Rest], Actors) -> 
+    Actor = GivenActor#actor.pid,
+    Type = GivenActor#actor.type,
+    Location = GivenActor#actor.location,
     CellStatus = 
 	lists:foldl(fun({A, T, L}, Acc) ->
 			    if (Location == L) and 
