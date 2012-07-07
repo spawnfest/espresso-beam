@@ -182,6 +182,7 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 				   Pid = A#actor.pid,
 				   Pid == ActorPid
 			   end, Actors),
+
     Location = Actor#actor.location,
     
     NewActors = 
@@ -196,9 +197,9 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 				      type=T, 
 				      location=L },
 				    [NewActor|Acc];
-
+			       
 			       true -> 
-				    Acc
+				    [A|Acc]
 			    end
 		    end,
 		    [],
@@ -214,7 +215,23 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 	   true -> NewActors
 	end,
 
-    NewState = State#state { actors=NewActors, %% !FIXME subtract diedactors!!!
+    io:format("Died actors: ~p ~n", [DiedActors]),
+
+    SurvivedActors = 
+	lists:filter(fun(A) ->
+			     P = A#actor.pid,
+			     
+			     lists:any(fun(A1) ->
+					       P1 = A1#actor.pid,
+					       P1 == A1
+				       end,
+				       DiedActors)
+		     end,
+		     NewActors),
+    
+    io:format("Survived actors: ~p ~n", [SurvivedActors]),
+
+    NewState = State#state { actors=SurvivedActors,
 			     pending_updates=NewPendingUpds
 			   },
 
@@ -372,8 +389,11 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
     Reply = Type:do_something(Actor, CellStatus),
 	
     %% delete the actor, if it died
-    case Reply of deallocate_me -> lists:delete(Actor, Actors);
-	_ -> Actors
-    end,
+    case Reply of deallocate_me -> 
+	    lists:delete(Actor, Actors),
+	    perform_life_cycle(Rest, Actors, [Actor|DiedActors]);
+	_ -> 
+	    perform_life_cycle(Rest, Actors, DiedActors)
+    end.
 
-    perform_life_cycle(Rest, Actors, [Actor|DiedActors]).
+
