@@ -62,7 +62,6 @@ websocket_init(_Any, Req, []) ->
 %% @end
 %%-------------------------------------------------------------------- 
 websocket_handle({text, <<"step">>}, Req, State) ->
-    io:format("~p~n", [Msg]),
     Reply = <<"will make all actors to take a step">>,
     {reply, {text, Reply}, Req, State, hibernate};
 
