@@ -28,8 +28,9 @@
 -record(state, {actors, environment}).
 -record(actor, {pid, type, location}).
 -record(environment, { rows=nil,
-		       cols=nil,
-		       held_positions}).
+		       cols=nil
+		       %%held_positions
+		     }).
 
 %%%===================================================================
 %%% API
@@ -79,8 +80,8 @@ init([]) ->
     Rows = config_manager:lookup(rows),
     Columns = config_manager:lookup(columns),
     Env = #environment{rows = Rows,
-		       cols = columns,
-		       held_positions = []},
+		       cols = columns
+		       },
     
     {ok, #state{actors=[],
 		environment=Env
@@ -100,15 +101,14 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-%% !FIXME to be implemented
 handle_call({allocate_me, ActorPid, ActorType}, _From, State) ->
-
-    Env = State#state.environment,
     Actors = State#state.actors,
-
-    Location = get_free_position(Env),
+    Env = State#state.environment,
+    Location = get_free_position(Env, Actors),
+    
     Actor = #actor{pid=ActorPid, type=ActorType, location=Location},
     {reply, Location, State#state{actors=[Actor|Actors]}};
+
 
 handle_call(_Request, _From, State) ->
     io:format("~p~n", [State#state.actors]),
@@ -174,25 +174,26 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-get_free_position(Environment) ->
-    HeldPositions = Environment#environment.held_positions,
+get_free_position(Environment, _Actors) ->
+    %% !FIXME maybe we shouldn't put two actors in the same cell?
     Rows = Environment#environment.rows,
     Cols = Environment#environment.cols,
     
     RandomLocation = { random:uniform(Rows), 
-		       random:uniform(Cols) },
+		       random:uniform(Cols) }.
+
+
+    %% %% check whether the location is already taken
+    %% IsTaken = lists:any(fun({{X,Y}, What}) ->
+    %% 				{X,Y} == RandomLocation
+    %% 			end,
+    %% 			HeldPositions),
     
-    %% check whether the location is already taken
-    IsTaken = lists:any(fun({{X,Y}, What}) ->
-				{X,Y} == RandomLocation
-			end,
-			HeldPositions),
-    
-    case IsTaken of true ->
-	    get_free_position(Environment);
-	_ ->
-	    RandomLocation
-    end.
+    %% case IsTaken of true ->
+    %% 	    get_free_position(Environment);
+    %% 	_ ->
+    %% 	    RandomLocation
+    %% end.
     
     
 	     
