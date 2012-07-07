@@ -221,11 +221,11 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 	lists:filter(fun(A) ->
 			     P = A#actor.pid,
 			     
-			     lists:any(fun(A1) ->
-					       P1 = A1#actor.pid,
-					       P1 == A1
-				       end,
-				       DiedActors)
+			     not lists:any(fun(A1) ->
+						   P1 = A1#actor.pid,
+						   P1 == A1
+					   end,
+					   DiedActors)
 		     end,
 		     NewActors),
     
