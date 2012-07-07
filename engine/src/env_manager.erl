@@ -17,7 +17,7 @@
 -export([allocate_me/2, 
 	 give_me_close_cells_status/1,
 	 update_me/2,
-	 deallocate_location/1]).
+	 deallocate_me/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -159,13 +159,16 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 get_free_location(Actors) ->
-    RandomLocation = #location{x=random:uniform(?MAX_X), y=random:uniform(?MAX_Y)},
-    case lists:keysearch(RandomLocation, #actor.location, Actors) of
-	false ->
-	    RandomLocation;
-	_Actor ->
-	    get_free_location(Actors)
-    end.
+    %% !FIXME to be implemented
+    %% RandomLocation = #location{x=random:uniform(?ROWS), 
+    %% 			       y=random:uniform(?COLUMNS)},
+    %% case lists:keysearch(RandomLocation, #actor.location, Actors) of
+    %% 	false ->
+    %% 	    RandomLocation;
+    %% 	_Actor ->
+    %% 	    get_free_location(Actors)
+    %% end.
+    ok.
 
 
 

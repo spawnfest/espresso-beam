@@ -66,12 +66,13 @@ init([]) ->
     io:format("Spawned new rabbit: ~p ~n", [self()]),
     Pos = env_manager:allocate_me(self(), rabbit),
 
-    %% !FIXME set health here
-    
-    {ok, idle, #state{ position=Pos,
-		       #actor_kin{},
-		       health=10,
-		     }}.
+
+    Kin = #actor_kin{},
+    {ok, idle, #state{ 
+	   position=Pos,
+	   kinematics=Kin,
+	   health=10
+	  }}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -98,19 +99,25 @@ idle({next_step}, State) ->
     Nearby = env_manager:give_me_close_cells_status(self()),
     
     %% check the nearby cells for carrots or wolves
-    Wolves = lists:filter(fun({{X,Y}, Content} ->
-				     lists:any(fun(What) ->
-						       What == {_, wolf}
-					       end,
-					       Content))
-			     end,
+    Wolves = lists:filter(fun({{X,Y}, Content}) ->
+				  lists:any(fun(What) ->
+						    case What of {_, wolf} ->
+							    true;
+							_ -> false
+						    end
+					    end,
+					    Content)
+			  end,
 			  Nearby),
     
-    Carrots = lists:filter(fun({{X,Y}, Content} ->
-				      lists:any(fun(What) ->
-							What == {_, carrot}
-						end,
-						Content))
+    Carrots = lists:filter(fun({{X,Y}, Content}) ->
+				   lists:any(fun(What) ->
+						     case What of {_, carrot} ->
+							     true;
+							 _ -> false
+						     end
+					     end,
+					     Content)
 			      end,
 			   Nearby),
     
@@ -118,14 +125,14 @@ idle({next_step}, State) ->
     {NextPos, NewKin} = 
 	if length(Wolves) =/= 0 ->
 		[W|_] = Wolves,
-		flee(Kin, W);
+		kinematics:flee(Kin, W);
 	   
 	   length(Carrots) =/= 0 ->
 		[C|_] = Carrots,
-		seek(Kin, C);
+		kinematics:seek(Kin, C);
 	   
 	   true ->
-		wander(Kin, Pos, Nearby)
+		kinematics:wander(Kin, Pos, Nearby)
 	end,
     
     NewState = #state{
@@ -140,15 +147,42 @@ idle({next_step}, State) ->
 
 
 %% wait for a list of other actors who are in our same cell
-wait({do_something, OtherActors}, State) ->
+wait({do_something, OtherActors}, _From, State) ->
+    %% get my health status
+    Health = State#state.health,
     
+    %% is there a carrot out there?
+    Carrots = lists:filter(fun({{X,Y}, Content}) ->
+				   lists:any(fun(What) ->
+						     case What of {_, carrot} ->
+							     true;
+							 _ -> false
+						     end
+					     end,
+					     Content)
+			      end,
+			   OtherActors),
     
-    
-    {next_state, state_name, State).
+    if length(Carrots) =/= 0 ->
+	    %% eat it
+	    NewState = State;
+
+       true ->
+	    %% else, decrease the health level
+	    NewState = State#state{ health = Health - 1 }
+    end,
 
 
-%% state_name(_Event, State) ->
-%%     {next_state, state_name, State}.
+    %% if health == 0 -> die
+    %% else -> go back to idle
+    if Health == 0 ->
+	    {stop, normal, deallocate_me, NewState};
+       true ->
+	    {reply, ok, idle, NewState}
+    end.
+
+state_name(_Event, State) ->
+    {next_state, state_name, State}.
 
 %%--------------------------------------------------------------------
 %% @private

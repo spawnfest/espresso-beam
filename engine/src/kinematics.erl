@@ -61,7 +61,7 @@ seek(Kinematics, Target) ->
 %%--------------------------------------------------------------------
 flee(Kinematics, Target) ->
     %% !FIXME to be implemented
-    PrevOrientation = ActorKinematics#actor_kin.orientation,
+    PrevOrientation = Kinematics#actor_kin.orientation,
     {nil, Kinematics}.
 
 
