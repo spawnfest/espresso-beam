@@ -65,7 +65,7 @@ init([]) ->
     Type = worker,
 
     %% Spawn a certain number of carrots when initializing
-    spawn_link(?MODULE, start_carrots, [?NUM_CARROTS]),
+    spawn_link(fun start_carrots/0),
 
     ACarrot = {carrot, {carrot, start_link, []},
               Restart, Shutdown, Type, [carrot]},
@@ -75,9 +75,23 @@ init([]) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-start_carrots(Num_Carrots) ->
-    [start_carrot() || _ <- lists:seq(1, Num_Carrots)],
+%%--------------------------------------------------------------------
+%% @doc
+%% Starts a given number of carrots.
+%%
+%% @spec start_carrots() -> [Carrot].
+%% @end
+%%--------------------------------------------------------------------
+start_carrots() ->
+    [start_carrot() || _ <- lists:seq(1, ?NUM_CARROTS)],
     ok.
 
+%%--------------------------------------------------------------------
+%% @doc
+%% Starts a carrot.
+%%
+%% @spec start_carrot() -> Carrot.
+%% @end
+%%--------------------------------------------------------------------
 start_carrot() ->
     supervisor:start_child(?MODULE, []).
