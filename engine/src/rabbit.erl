@@ -13,10 +13,12 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/0]).
+-export([start_link/0,
+	 do_something/2
+	]).
 
 %% gen_fsm callbacks
--export([init/1, state_name/2, state_name/3, handle_event/3,
+-export([init/1, handle_event/3,
 	 handle_sync_event/4, handle_info/3, terminate/3, code_change/4]).
 
 -define(SERVER, ?MODULE).
@@ -43,6 +45,12 @@
 %%--------------------------------------------------------------------
 start_link() ->
     gen_fsm:start_link(?MODULE, [], []).
+
+next_step(Pid) ->
+    gen_fsm:send_event(Pid, {next_step}).
+
+do_something(Pid, CellStatus) ->
+    gen_fsm:send_sync_event(Pid, {do_something, CellStatus}).
 
 %%%===================================================================
 %%% gen_fsm callbacks
@@ -142,7 +150,7 @@ idle({next_step}, State) ->
      },
 
     %% tell the env_manager the new_position
-    Nearby = env_manager:update_me(self(), NextPos),
+    env_manager:update_me(self(), NextPos),
     {next_state, wait, NewState}.
 
 

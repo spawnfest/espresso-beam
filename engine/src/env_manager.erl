@@ -43,8 +43,7 @@
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+start_link() -> gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 allocate_me(ActorPid, ActorType) ->
     gen_server:call(?SERVER, {allocate_me, ActorPid, ActorType}).
@@ -58,7 +57,7 @@ update_me(ActorPid, NewPos) ->
 deallocate_me(ActorPid) ->
     gen_server:cast(?SERVER, {deallocate_me, ActorPid}).
 
-%% !FIXME loop needed -> set pending_updates!
+step() -> gen_server:cast(?SERVER, {step}).
 
 %%%===================================================================
 %%% gen_server callacks
@@ -158,10 +157,10 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-%% !FIXME to be implemented
 handle_cast({deallocate_me, ActorPid}, #state{actors=Actors} = State) ->
     NewActors = lists:keydelete(ActorPid, #actor.pid, Actors),
     {noreply, State#state{actors=NewActors}};
+
 
 handle_cast({update_me, ActorPid, NewPos}, State) ->
     %% update the position
@@ -189,6 +188,22 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 			     pending_updates=NewPendingUpds
 			   },
 
+    {noreply, NewState};
+
+
+handle_cast({step}, State) ->
+    Actors = State#state.actors,
+    ActorsCount = length(Actors),
+    
+    NewState = State#state { pending_updates = ActorsCount },
+    
+    %% tell each actor to perform a time step
+    lists:foreach(fun({A, T, L}) ->
+			  T:next_step(A)
+		  end,
+		  Actors),
+    
+    %% that's it!
     {noreply, NewState};
 
 
