@@ -13,7 +13,7 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/0, eat/2]).
+-export([start_link/0, eat/2, next_step/1]).
 
 %% gen_fsm callbacks
 -export([init/1, idle/2, idle/3, handle_event/3, handle_sync_event/4, 
@@ -44,6 +44,9 @@ start_link() ->
 eat(CarrotPid, EaterPid) ->
     gen_fsm:send_event(CarrotPid, {eaten, EaterPid}).
 
+next_step(Pid) ->
+    gen_fsm:send_event(Pid, {next_step}).
+
 %%%===================================================================
 %%% gen_fsm callbacks
 %%%===================================================================
@@ -62,8 +65,8 @@ eat(CarrotPid, EaterPid) ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-    io:format("Spawned new carrot: ~p ~n", [self()]),
     Pos = env_manager:allocate_me(self(), carrot),
+    io:format("Spawned new carrot: ~p. At the position ~p~n", [self(), Pos]),
     {ok, idle, #state{position=Pos}}.
 
 %%--------------------------------------------------------------------

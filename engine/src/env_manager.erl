@@ -17,7 +17,8 @@
 -export([allocate_me/2, 
 	 give_me_close_cells_status/1,
 	 update_me/2,
-	 deallocate_me/1]).
+	 deallocate_me/1,
+     step/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -198,7 +199,9 @@ handle_cast({step}, State) ->
     NewState = State#state { pending_updates = ActorsCount },
     
     %% tell each actor to perform a time step
-    lists:foreach(fun({A, T, L}) ->
+    lists:foreach(fun(ActorRecord) ->
+              T = ActorRecord#actor.type,
+              A = ActorRecord#actor.pid,
 			  T:next_step(A)
 		  end,
 		  Actors),

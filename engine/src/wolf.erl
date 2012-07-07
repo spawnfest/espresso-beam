@@ -13,7 +13,7 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/0]).
+-export([start_link/0, next_step/1]).
 
 %% gen_fsm callbacks
 -export([init/1, idle/2, wait/3, handle_event/3, handle_sync_event/4, handle_info/3, 
@@ -43,6 +43,9 @@
 %%--------------------------------------------------------------------
 start_link() ->
     gen_fsm:start_link(?MODULE, [], []).
+
+next_step(Pid) ->
+    gen_fsm:send_event(Pid, {next_step}).
 
 %%%===================================================================
 %%% gen_fsm callbacks
