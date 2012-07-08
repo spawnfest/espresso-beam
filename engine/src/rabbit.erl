@@ -21,9 +21,8 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {position=nil,
-		kinematics=nil,
-		health=nil
+-record(state, { kinematics=nil,
+		 health=nil
 	       }).
 
 -include("../include/espresso_beam.hrl").
@@ -74,12 +73,10 @@ init([]) ->
     Pos = env_manager:allocate_me(self(), rabbit),
 
 
-    Kin = #actor_kin{},
-    {ok, idle, #state{ 
-	   position=Pos,
-	   kinematics=Kin,
-	   health=10
-	  }}.
+    Kin = #kin{ position = Pos },
+
+    {ok, idle, #state{ kinematics=Kin,
+		       health=10 }}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -98,7 +95,6 @@ init([]) ->
 %%--------------------------------------------------------------------
 idle({next_step}, State) ->
     %% get the kinematics and the current position
-    Pos = State#state.position,
     Kin = State#state.kinematics,
     Health = State#state.health,
     
@@ -117,21 +113,22 @@ idle({next_step}, State) ->
 			  end,
 			  Nearby),
     
-    Carrots = lists:filter(fun({{X,Y}, Content}) ->
-				   lists:any(fun(What) ->
-						     case What of {_, carrot} ->
-							     true;
-							 _ -> false
-						     end
-					     end,
-					     Content)
-			      end,
-			   Nearby),
+    Carrots = 
+	lists:filter(fun({{X,Y}, Content}) ->
+			     lists:any(fun(What) ->
+					       case What of {_, carrot} ->
+						       true;
+						   _ -> false
+					       end
+				       end,
+				       Content)
+		     end,
+		     Nearby),
 
     io:format("after sensing nearby cells~n"),
     
     %% according to the content of the nearby cells, take a new behaviour
-    {NextPos, NewKin} = 
+    NewKin = 
 	if length(Wolves) =/= 0 ->
 		[W|_] = Wolves,
 		kinematics:flee(Kin, W);
@@ -141,20 +138,17 @@ idle({next_step}, State) ->
 		kinematics:seek(Kin, C);
 	   
 	   true ->
-		kinematics:wander(Kin, Pos, Nearby)
+		kinematics:wander(Kin, Nearby)
 	end,
 
     io:format("after kinematics~n"),
     
-    NewState = #state{
-      position = NextPos,
-      kinematics = NewKin,
-      health = Health
-     },
-
+    NewState = #state{ kinematics = NewKin,
+		       health = Health },
+    
     %% tell the env_manager the new_position
     io:format("before the update_me~n"),
-    env_manager:update_me(self(), NextPos),
+    env_manager:update_me(self(), NewKin#kin.position),
     {next_state, wait, NewState}.
 
 

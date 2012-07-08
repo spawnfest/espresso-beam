@@ -26,8 +26,9 @@
 
 -define(SERVER, ?MODULE). 
 
+-include("../include/espresso_beam.hrl").
+
 -record(state, {actors, environment, pending_updates}).
--record(actor, {pid, type, location}).
 -record(environment, { rows=nil,
 		       cols=nil
 		       %%held_positions
@@ -116,14 +117,13 @@ handle_call({allocate_me, ActorPid, ActorType}, _From, State) ->
 handle_call({give_me_close_cells_status, ActorPid}, _From, State) ->
     Env = State#state.environment,
     Actors = State#state.actors,
-
-    [Actor] = lists:filter(fun(A) ->
-                                Pid = A#actor.pid,
-                                Pid == ActorPid
-                            end, Actors),
-
+    
+    [Actor] = lists:filter(fun(A) -> Pid = A#actor.pid,
+				     Pid == ActorPid
+			   end, Actors),
+    
     Location = Actor#actor.location,
-
+    
     %% get nearby locations
     NearbyLocations = get_nearby_locations(Location, 
 					   Env#environment.rows,
@@ -133,21 +133,24 @@ handle_call({give_me_close_cells_status, ActorPid}, _From, State) ->
     %% [{Pos, [ListOfActors]}]
     Reply = 
 	lists:foldl(fun(Loc, Acc0) ->
-			   [{Loc, 
-			     lists:foldl(fun(A, Acc1) ->
-                         P = A#actor.pid,
-                         T = A#actor.type,
-                         ActorPos = A#actor.location,
-						 if Loc == ActorPos -> [{P,T}|Acc1];
-						    true -> Acc1
-						 end
-					 end,
-					 [],
-					 Actors)} | Acc0]
-		   end,
-		   [],
-		   NearbyLocations),
-
+			    [{Loc, 
+			      lists:foldl(fun(A, Acc1) ->
+						  P = A#actor.pid,
+						  T = A#actor.type,
+						  ActorPos = A#actor.location,
+						  if Loc == ActorPos -> 
+							  [{P,T}|Acc1];
+						     
+						     true -> 
+							  Acc1
+						  end
+					  end,
+					  [],
+					  Actors)} | Acc0]
+		    end,
+		    [],
+		    NearbyLocations),
+    
     {reply, Reply, State};
 
 

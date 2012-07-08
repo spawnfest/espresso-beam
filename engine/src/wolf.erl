@@ -21,10 +21,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {position=nil,
-		kinematics=nil,
-		health=nil
-	       }).
+-record(state, { kinematics=nil, health=nil }).
 
 -include("../include/espresso_beam.hrl").
 
@@ -73,12 +70,8 @@ init([]) ->
     Pos = env_manager:allocate_me(self(), wolf),
 
 
-    Kin = #actor_kin{},
-    {ok, idle, #state{ 
-	   position=Pos,
-	   kinematics=Kin,
-	   health=10
-	  }}.
+    Kin = #kin{ position = Pos },
+    {ok, idle, #state{ kinematics=Kin, health=10 }}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -96,9 +89,7 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 idle({next_step}, State) ->
-    NewState = State,
     %% %% get the kinematics and the current position
-    Pos = State#state.position,
     Kin = State#state.kinematics,
     Health = State#state.health,
     
@@ -118,21 +109,18 @@ idle({next_step}, State) ->
      			  Nearby),
 
     %% %% according to the content of the nearby cells, take a new behaviour
-    {NextPos, NewKin} = 
+    NewKin = 
     	if length(Rabbits) =/= 0 ->
      		    [R|_] = Rabbits,
      		    kinematics:pursue(Kin, R);
      	    true ->
-     		    kinematics:wander(Kin, Pos, Nearby)
+     		    kinematics:wander(Kin, Nearby)
      	end,
 
-    NewState = #state{
-       position = NextPos,
-       kinematics = NewKin,
-       health = Health
-    },
+    NewState = #state{ kinematics = NewKin, health = Health },
 
     %% %% tell the env_manager the new_position
+    NextPos = (NewState#state.kinematics)#kin.position,
     env_manager:update_me(self(), NextPos),
     {next_state, wait, NewState}.
 
