@@ -77,9 +77,9 @@ state of the world, then gives it back in JSON format.
 
 Who
 ---
-Loris Fichera <loris.fichera@gmail.com> 
-Mirko Bonadei <mirko.bonadei@gmail.com>
-Paolo D'Incau <paolo.dincau@gmail.com> 
+Loris Fichera <loris.fichera@gmail.com>   
+Mirko Bonadei <mirko.bonadei@gmail.com>   
+Paolo D'Incau <paolo.dincau@gmail.com>    
 
 Why?
 ----
