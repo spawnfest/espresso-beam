@@ -16,8 +16,8 @@
 -export([start_link/0, next_step/1, do_something/2]).
 
 %% gen_fsm callbacks
--export([init/1, idle/2, wait/3, handle_event/3, handle_sync_event/4, handle_info/3, 
-         terminate/3, code_change/4]).
+-export([init/1, idle/2, wait/3, handle_event/3, handle_sync_event/4, 
+         handle_info/3, terminate/3, code_change/4]).
 
 -define(SERVER, ?MODULE).
 
@@ -112,6 +112,8 @@ idle({next_step}, State) ->
     NewKin = 
     	if length(Rabbits) =/= 0 ->
      		    [R|_] = Rabbits,
+                %% FIXME: this is a must! Need implementation
+                %%pg:esend(wolves, {rabbit_detected, R}),
      		    kinematics:pursue(Kin, R);
      	    true ->
      		    kinematics:wander(Kin, Nearby)
@@ -124,7 +126,7 @@ idle({next_step}, State) ->
     env_manager:update_me(self(), NextPos),
     {next_state, wait, NewState}.
 
-
+    
 %% wait for a list of other actors who are in our same cell
 wait({do_something, OtherActors}, _From, State) ->
     %% %% get my health status
@@ -204,7 +206,7 @@ handle_sync_event(_Event, _From, StateName, State) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-handle_info(_Info, StateName, State) ->
+handle_info(Info, StateName, State) ->
     {next_state, StateName, State}.
 
 %%--------------------------------------------------------------------
