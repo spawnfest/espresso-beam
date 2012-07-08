@@ -69,7 +69,7 @@ his fellows calling
 All wandering wolves will immediately chase that rabbit.
 
 The user interface, that is, the html page that you opened before in your browser, 
-contains an HTML5 canvas, which at every game step by a javscript controller.
+contains an HTML5 canvas, which at every game step by a javascript controller.
 
 To get the world status, we query the game engine using websockets.
 The game engine makes use of cowboy to handle the request, collects the 
@@ -86,7 +86,7 @@ Why?
 
 Here in Italy we have the concept of *zona Cesarini*, which means *in extremis*.   
 Well, it was mid June and we were, still, without ideas for the spawnfest.   
-Suddendly, a nice thought came up to Mirko's mind... he remembered of a 
+Suddenly, a nice thought came up to Mirko's mind... he remembered of a 
 curious exercise that *Francesco Cesarini* did when he was a student in Uppsala University [2].
 *We can make something similar!*, we thought.  
 Well, this has been our *zona Cesarini*, for real. :)
@@ -105,7 +105,7 @@ Going onto practical ground, the following things could be implemented/improved:
  * actors must not go outside of the playing field
  * kinematics can be improved: sometimes movements are not too... *intelligent* :)
  * implement spawn of new rabbits/wolves when their health level goes over a certain threshold
- * let the user choose the parametes from the html page
+ * let the user choose the parameters from the html page
  * refactor env_manager and use ets instead of lists to store the game status
  * names harmonization
 
