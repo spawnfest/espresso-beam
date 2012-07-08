@@ -91,7 +91,7 @@ init([]) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-idle({next_step, _}, State) ->
+idle({move, _}, State) ->
     %% carrots don't move
     NextPos = State#state.position, 
     env_manager:update_me(self(), NextPos),
