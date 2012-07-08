@@ -112,8 +112,13 @@ flee(Kinematics, Target) ->
 %%--------------------------------------------------------------------
 pursue(Kinematics, Target) ->
     %% !FIXME to be extended when sensing_distance > 1
-    seek(Kinematics, Target).
+    CurPosition = Kinematics#kin.position,
+    {TargetPosition, _} = Target,
+    NewOrientation = pursue_orientation(CurPosition, TargetPosition),
+    NewPos = orientation2position(CurPosition, NewOrientation),
 
+    #kin{ position = NewPos,
+	  orientation = NewOrientation }.
 
 
 %%%===================================================================
@@ -156,5 +161,24 @@ position2orientation({X, Y}, {A, Z}) when (A == X - 1) and (Z == Y) -> 180.0;
 position2orientation({X, Y}, {A, Z}) when (A == X - 1) and (Z == Y - 1) -> 225.0;
 position2orientation({X, Y}, {A, Z}) when (A == X) and (Z == Y - 1) -> 270.0;
 position2orientation({X, Y}, {A, Z}) when (A == X + 1) and (Z == Y - 1) -> 315.0.
+
+
+%% degrees2radians
+degrees2radians(Deg) -> Deg * math:pi() / 180.
+
+%% radians2degrees
+radians2degrees(Rad) -> Rad * 180 / math:pi().
+
+%% pursue_orientation
+pursue_orientation({X, Y}, {A, Z}) ->
+    C = math:sqrt(math:pow(X - A) + math:pow(Y - Z)),
+    Alpha = radians2degrees(math:asin((A - X) / C)),
+    Beta = 180 - Alpha.
+    
+    
+    
+
+
+     
 
     
