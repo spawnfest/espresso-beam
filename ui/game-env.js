@@ -109,11 +109,6 @@ function update_canvas(msg) {
 	      msg.env_state[i].location[0], 
 	      msg.env_state[i].location[1]);
     }
-    // now, draw
-    //for (i=0; i < msg.env_state.length; i++) {
-	//writeToScreen('<span style="color: blue;">Reply: ' + msg.env_state[i].type +' </span>');
-//	draw (msg.env_state[i].type, rabbitsPositions[i][0], msg.env_state.position[0][0]);
-  //  }
 }
 
 window.onload = function () {
