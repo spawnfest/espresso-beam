@@ -182,7 +182,7 @@ eat({act, CellContent}, _From, State) ->
 	end,
 
     NewState = State#state { health = UpdatedHealth },
-
+    
     if UpdatedHealth == 0 ->
 	    env_manager:deallocate_me(self()),
 	    {stop, normal, deallocate_me, NewState}; %% die 
@@ -197,7 +197,7 @@ eat({act, CellContent}, _From, State) ->
     end.
 
 
-flee({move, Nearby}, State) ->
+flee({move, Nearby, NearbyLocations}, State) ->
     Kin = State#state.kinematics,
     
     %% running away from wolves, don't care about carrots
@@ -216,7 +216,7 @@ flee({move, Nearby}, State) ->
 	   true ->
 		%% if there's nothing around...	
 		%% go wandering!
-		NewKin = kinematics:wander(Kin, Nearby),
+		NewKin = kinematics:wander(Kin, NearbyLocations),
 		
 		%% next state is wander!
 		{State#state { kinematics = NewKin }, wander}

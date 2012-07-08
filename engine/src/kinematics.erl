@@ -116,7 +116,6 @@ pursue(Kinematics, Target) ->
     %% !FIXME to be extended when sensing_distance > 1
     CurPosition = Kinematics#kin.position,
     TargetPosition = Target#actor.location,
-    io:format("~n~n~n~n~nPursue, this is the Target: ~p~n~n~n~n", [TargetPosition]),
     NewOrientation = pursue_orientation(CurPosition, TargetPosition),
     NewPos = orientation2position(CurPosition, NewOrientation),
     
@@ -175,5 +174,13 @@ radians2degrees(Rad) -> Rad * 180 / math:pi().
 %% pursue_orientation
 pursue_orientation({X, Y}, {A, Z}) ->
     C = math:sqrt(math:pow(X - A, 2) + math:pow(Y - Z, 2)),
-    Alpha = radians2degrees(math:asin((A - X) / C)),
-    Beta = 180 - Alpha.
+    D = A - X,
+    
+    case D of 0 ->
+	    0;
+	_ ->
+	    Alpha = radians2degrees(math:asin(D / C)),
+	    180 - Alpha
+    end.
+	
+

@@ -21,6 +21,9 @@
 -export([init/1, 
 	 wander/2,
 	 wander/3,
+	 pursue/2,
+	 pursue/3,
+	 eat/3,
 	 handle_event/3, handle_sync_event/4, 
          handle_info/3, terminate/3, code_change/4]).
 
@@ -134,6 +137,7 @@ wander({act, _}, _From, State) ->
     NewState = State#state { health = UpdatedHealth },
     
     if UpdatedHealth == 0 ->
+	    env_manager:deallocate_me(self()),
 	    {stop, normal, deallocate_me, NewState}; %% die 
        true ->
 	    {reply, UpdatedHealth, wander, NewState}
@@ -166,6 +170,64 @@ pursue({move, Nearby, NearbyLocations}, State) ->
     
     env_manager:update_me(self(), NewKin#kin.position),
     {next_state, NextState, NewState}.		
+
+
+pursue({act, CellContent}, _From, State) -> %%!FIXME refactor!
+    %% if there's something in the cell, try to eat it!
+    Health = State#state.health,
+    CurrentTarget = State#state.target,
+    TargetPid = CurrentTarget#actor.pid,
+    IsAlive = is_process_alive(TargetPid),
+
+    %% is there a rabbit out there?
+    if IsAlive ->
+	    io:format("Other Actors in my cell: ~p ~n", [CellContent]),
+	    
+	    %% try to eat a rabbit and update the health
+	    Rabbits = lists:filter(fun(A) -> T = A#actor.type,
+					     T == rabbit
+				   end,
+				   CellContent),
+	    
+	    {UpdatedHealth, NewTarget} = 
+		if length(Rabbits) =/= 0 ->
+			%% eat it
+			[R|_] = Rabbits,
+			carrot:eat(R#actor.pid, self()),
+			{Health + 2, nil};
+		   
+		   true ->
+			%% else, the rabbit is not here
+			{Health - 1, CurrentTarget}
+		end,
+	    
+	    NewState = State#state { health = UpdatedHealth, 
+				     target = NewTarget};
+
+       %% the rabbit is no more alive, go back to wander
+       true ->
+	    UpdatedHealth = Health - 1,
+	    NewState = State#state { health = Health - 1, 
+				     target = nil}
+    end,
+    
+    if UpdatedHealth == 0 ->
+	    env_manager:deallocate_me(self()),
+	    {stop, normal, deallocate_me, NewState}; %% die 
+       
+       true ->
+	    if UpdatedHealth > 25 ->	    
+		    %% spawn a new wolf %% !FIXME to be implemented!
+		    ok;
+	       true -> ok
+	    end,
+	    
+	    case NewState#state.target of nil ->
+		    {reply, UpdatedHealth, wander, NewState};
+		_ ->
+		    {reply, UpdatedHealth, pursue, NewState}
+	    end
+    end.
 
 
 eat({act, CellContent}, _From, State) ->
