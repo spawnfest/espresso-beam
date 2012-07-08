@@ -54,6 +54,8 @@ function writeToScreen(message) {
 
 function stepFunction() {
     interval = setInterval(function() { doSend("step") }, 1000);
+    //increase timeSteps for plotting purposes
+    timeSteps = timeSteps + 1;
 }
 
 function stopFunction() {
@@ -62,6 +64,8 @@ function stopFunction() {
 }
 
 window.addEventListener("load", init, false);  
+
+// here are the functions for drawing
 
 //images
 var imgRabbit = "img/rabbit.png"
@@ -88,7 +92,7 @@ function cell2CanvasCoord(coord) {
 function draw(character, x, y) {    
     var img = new Image();
     
-    if (character == 'rabbit') 
+    if (character == 'rabbit')
 	img.src = imgRabbit;
     
     else if (character == 'wolf') 
@@ -123,3 +127,11 @@ window.onload = function () {
     cvs.width  = cWidth * tileSize;
     cvs.height = cHeight * tileSize;
 }
+
+// Here are the functions for plotting the graphs
+
+var rabbits = []; 
+var carrots = [];
+var wolves = [];
+var timeSteps = 0;
+
