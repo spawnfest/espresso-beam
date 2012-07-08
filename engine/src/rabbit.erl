@@ -346,6 +346,6 @@ sense(Nearby) ->
 			     end
 		     end,
 		     Nearby),
-    
+
     {Carrots, Wolves}.
 
