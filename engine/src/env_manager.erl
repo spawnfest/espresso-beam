@@ -402,4 +402,14 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
 	    perform_life_cycle(Rest, Actors, DiedActors)
     end.
 
+ 
+%% some help in packing/unpacking actor informations
+actor_tuple2record({P, T, L}) ->
+    #actor{ pid=P, type=T, location=L }.
 
+actor_record2tuple(A) ->
+    P = A#actor.pid,
+    T = A#actor.type,
+    L = A#actor.location,
+    {P, T, L}.
+	   
