@@ -129,7 +129,12 @@ wander({act, _}, _From, State) ->
     Health = State#state.health,
     UpdatedHealth = Health - 1,
     NewState = State#state { health = UpdatedHealth },
-    {reply, ok, wander, NewState}.
+    
+    if UpdatedHealth == 0 ->
+	    {stop, normal, deallocate_me, NewState}; %% die 
+       true ->
+	    {reply, UpdatedHealth, wander, NewState}
+    end.
 
 
 pursue({move, Nearby, NearbyLocations}, State) ->
@@ -201,16 +206,18 @@ eat({act, CellContent}, _From, State) ->
     if UpdatedHealth == 0 ->
 	    {stop, normal, deallocate_me, NewState}; %% die 
        
-       UpdatedHealth > 25 ->	    
-	    %% spawn a new wolf %% !FIXME to be implemented!
-	    ok
-       %%{reply, ok, wander, NewState};
-    end,
-    
-    case NewState#state.target of nil ->
-	    {reply, ok, wander, NewState};
-	_ ->
-	    {reply, ok, pursue, NewState}
+       true ->
+	    if UpdatedHealth > 25 ->	    
+		    %% spawn a new wolf %% !FIXME to be implemented!
+		    ok;
+	       true -> ok
+	    end,
+	    
+	    case NewState#state.target of nil ->
+		    {reply, UpdatedHealth, wander, NewState};
+		_ ->
+		    {reply, UpdatedHealth, pursue, NewState}
+	    end
     end.
 
 
@@ -297,13 +304,11 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %%%===================================================================
 sense(Nearby) ->
     Rabbits = 
-	lists:filter(fun({{X,Y}, Content}) ->
-			     lists:any(fun(What) ->
-					       T = What#actor.type,
-					       case T of wolf -> true;
-						   _ -> false
-					       end
-				       end,
-				       Content)
+	lists:filter(fun(Actor) ->
+			     T = Actor#actor.type,
+			     case T of rabbit -> true;
+				 _ -> false
+			     end
 		     end,
 		     Nearby).
+

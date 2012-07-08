@@ -104,7 +104,6 @@ idle({eaten, Pid}, State) ->
     {stop, normal, State}.
 
 idle({act, _}, _From, State) ->
-    io:format("inside the callback~n"),
     {reply, ok, idle, State}.
 
 %%--------------------------------------------------------------------

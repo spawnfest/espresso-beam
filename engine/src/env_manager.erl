@@ -181,7 +181,6 @@ handle_cast({deallocate_me, ActorPid}, #state{actors=Actors} = State) ->
 
 
 handle_cast({update_me, ActorPid, NewPos}, State) ->
-    io:format("Inside update_me", []),
     %% update the position
     Actors = State#state.actors,
     
@@ -202,7 +201,8 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 				    NewActor = #actor{ 
 				      pid=P, 
 				      type=T, 
-				      location=NewPos },
+				      location=NewPos
+				     },
 				    [NewActor|Acc];
 			       
 			       true -> 
@@ -214,7 +214,7 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
     
     %% now, let's decrement the counter of pending updates
     NewPendingUpds = State#state.pending_updates - 1,
-
+    
     io:format("Updates pending --> ~p~n", [NewPendingUpds]),
     
     DiedActors = 
@@ -277,6 +277,7 @@ handle_cast({step}, State) ->
 			  
 			  %% tell process A to move
 			  T:move(A, Nearby, NearbyLocations)
+			      
 		  end,
 		  Actors),
     
@@ -412,7 +413,7 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
 
     %% !FIXME try catch here?
     %% possibly, add it to the dieadactors list
-    io:format("Sending do_something to ~p~n", [Actor]),
+    %%io:format("Sending do_something to ~p~n", [Actor]),
 
     Reply = 
         try Type:act(Actor, CellStatus)
@@ -420,8 +421,9 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
             _:_ ->
                 already_dead %% everything is ok. Only to avoid crash
         end,
-    
-    io:format("Reply received: ~p~n",[Reply]),
+
+    io:format("~p ~p has now health: ~p ~n",
+	      [Type, Actor, Reply]),
     
     %% delete the actor, if it died
     case Reply of deallocate_me -> 

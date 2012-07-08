@@ -82,8 +82,7 @@ init([]) ->
     pg:join(rabbits, self()),
     io:format("Spawned new rabbit: ~p ~n", [self()]),
     Pos = env_manager:allocate_me(self(), rabbit),
-
-
+    
     Kin = #kin{ position = Pos },
 
     {ok, wander, #state{ kinematics=Kin,
@@ -150,7 +149,11 @@ wander({act, _}, _From, State) ->
     Health = State#state.health,
     UpdatedHealth = Health - 1,
     NewState = State#state { health = UpdatedHealth },
-    {reply, ok, wander, NewState}.
+    if UpdatedHealth == 0 ->
+	    {stop, normal, deallocate_me, NewState}; %% die 
+       true ->
+	    {reply, UpdatedHealth, wander, NewState}
+    end.
 
 
 eat({act, CellContent}, _From, State) ->
@@ -184,11 +187,11 @@ eat({act, CellContent}, _From, State) ->
        
        UpdatedHealth > 25 ->	    
 	    %% spawn a new rabbit %% !FIXME to be implemented!
-	    {reply, ok, wander, NewState};
-
+	    {reply, UpdatedHealth, wander, NewState};
+       
        true ->
 	    %% go back to wander
-	    {reply, ok, wander, NewState}
+	    {reply, UpdatedHealth, wander, NewState}
     end.
 
 
@@ -227,7 +230,12 @@ flee({act, _}, _From, State) ->
     Health = State#state.health,
     UpdatedHealth = Health - 1,
     NewState = State#state { health = UpdatedHealth },
-    {reply, ok, wander, NewState}. 
+
+    if UpdatedHealth == 0 ->
+	    {stop, normal, deallocate_me, NewState}; %% die 
+       true ->
+	    {reply, UpdatedHealth, wander, NewState}
+    end.
 
 
 %%--------------------------------------------------------------------
@@ -319,28 +327,22 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %% sense the nearby cells for carrots and wolves
 sense(Nearby) ->
     Wolves = 
-	lists:filter(fun({{X,Y}, Content}) ->
-			     lists:any(fun(What) ->
-					       T = What#actor.type,
-					       case T of wolf -> true;
-						   _ -> false
-					       end
-				       end,
-				       Content)
+	lists:filter(fun(Actor) ->
+			     T = Actor#actor.type,
+			     case T of wolf -> true;
+				 _ -> false
+			     end
 		     end,
 		     Nearby),
-    
+
     Carrots = 
-	lists:filter(fun({{X,Y}, Content}) ->
-			     lists:any(fun(What) ->
-					       T = What#actor.type,
-					       case T of carrot -> true;
-						   _ -> false
-					       end
-				       end,
-				       Content)
+	lists:filter(fun(Actor) ->
+			     T = Actor#actor.type,
+			     case T of carrot -> true;
+				 _ -> false
+			     end
 		     end,
-		     Nearby),        
+		     Nearby),
     
     {Carrots, Wolves}.
 
