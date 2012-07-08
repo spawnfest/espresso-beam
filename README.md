@@ -43,8 +43,7 @@ infamous **tac nayn** [1]!
 How
 ---
 No surprise, carrots, rabbits and wolves have been implemented by means of finite state
-machines. The hard part -- of course -- was to synchronize the processes together, avoiding  
-inconsistent states of the application.
+machines. The hard part -- of course -- was to synchronize the processes together, avoiding inconsistent states of the application.
 
 The moving behaviour of carrots and wolves has been implemented in the `kinematics` module,
 which exports the following functions:
