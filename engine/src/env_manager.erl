@@ -26,8 +26,9 @@
 
 -define(SERVER, ?MODULE). 
 
+-include("../include/espresso_beam.hrl").
+
 -record(state, {actors, environment, pending_updates}).
--record(actor, {pid, type, location}).
 -record(environment, { rows=nil,
 		       cols=nil
 		       %%held_positions

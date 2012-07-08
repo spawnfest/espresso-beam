@@ -21,10 +21,8 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {position=nil,
-		kinematics=nil,
-		health=nil
-	       }).
+-record(state, { kinematics=nil,
+		 health=nil }).
 
 -include("../include/espresso_beam.hrl").
 
@@ -73,12 +71,9 @@ init([]) ->
     Pos = env_manager:allocate_me(self(), wolf),
 
 
-    Kin = #actor_kin{},
-    {ok, idle, #state{ 
-	   position=Pos,
-	   kinematics=Kin,
-	   health=10
-	  }}.
+    Kin = #kin{ position = Pos },
+    {ok, idle, #state{  kinematics=Kin,
+			health=10 }}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -149,7 +144,7 @@ idle({next_step}, State) ->
     %%  },
 
     %% %% tell the env_manager the new_position
-    NextPos = State#state.position, %% !FIXME wolves are staying still
+    NextPos = (State#state.kinematics)#kin.position, %% !FIXME wolves are staying still
     env_manager:update_me(self(), NextPos),
     {next_state, wait, NewState}.
 
