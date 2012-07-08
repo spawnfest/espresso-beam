@@ -84,11 +84,11 @@ Paolo D'Incau <paolo.dincau@gmail.com>
 Why?
 ----
 
-Here in Italy we have the concept of *zona Cesarini*, which means *in extremis*.
-Well, it was mid June and we were, still, without ideas for the spawnfest.
+Here in Italy we have the concept of *zona Cesarini*, which means *in extremis*.   
+Well, it was mid June and we were, still, without ideas for the spawnfest.   
 Suddendly, a nice thought came up to Mirko's mind... he remembered of a 
 curious exercise that *Francesco Cesarini* did when he was a student in Uppsala University [2].
-*We can make something similar!*
+*We can make something similar!*, we thought.  
 Well, this has been our *zona Cesarini*, for real. :)
 
 What else?
