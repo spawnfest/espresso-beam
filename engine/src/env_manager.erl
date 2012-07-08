@@ -381,13 +381,17 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
     %% possibly, add it to the dieadactors list
     io:format("Sending do_something to ~p~n", [Actor]),
 
-    Reply = Type:do_something(Actor, CellStatus),
+    Reply = 
+        try Type:do_something(Actor, CellStatus)
+        catch
+            _:_ ->
+                already_dead %% everything is ok. Only to avoid crash
+        end,
 
     io:format("Reply received: ~p~n",[Reply]),
 	
     %% delete the actor, if it died
     case Reply of deallocate_me -> 
-
 	    lists:delete(GivenActor, Actors),
 	    perform_life_cycle(Rest, Actors, [GivenActor|DiedActors]);
 	_ -> 
