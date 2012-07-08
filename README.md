@@ -110,7 +110,13 @@ Going onto practical ground, the following things could be implemented/improved:
  * names harmonization
 
 Links
-----
+-----
 
 [1] http://www.youtube.com/watch?v=OM-9Q0ac6Zs   
 [2] http://pdincau.wordpress.com/2011/04/25/an-interview-with-francesco-cesarini-francescoc/
+
+Other Resources
+---------------
+All of the artworks used in this project has been found on internet and are free to use.
+Sadly, time is running out. Once spawnfest is over, we will open the repository and update this readme,
+giving credits to the brave designers who, unintentionally, helped us. :)
