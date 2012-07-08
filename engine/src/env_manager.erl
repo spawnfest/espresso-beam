@@ -179,8 +179,6 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
     %% update the position
     Actors = State#state.actors,
     
-    io:format("~p ~n", [State]),
-
     [Actor] = lists:filter(fun(A) ->
 				   Pid = A#actor.pid,
 				   Pid == ActorPid

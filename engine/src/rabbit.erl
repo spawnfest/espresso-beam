@@ -102,16 +102,17 @@ idle({next_step}, State) ->
     Nearby = env_manager:give_me_close_cells_status(self()),
    
     %% check the nearby cells for carrots or wolves
-    Wolves = lists:filter(fun({{X,Y}, Content}) ->
-				  lists:any(fun(What) ->
-						    case What of {_, wolf} ->
-							    true;
-							_ -> false
-						    end
-					    end,
-					    Content)
-			  end,
-			  Nearby),
+    Wolves = 
+	lists:filter(fun({{X,Y}, Content}) ->
+			     lists:any(fun(What) ->
+					       case What of {_, wolf} ->
+						       true;
+						   _ -> false
+					       end
+				       end,
+				       Content)
+		     end,
+		     Nearby),
     
     Carrots = 
 	lists:filter(fun({{X,Y}, Content}) ->
@@ -158,15 +159,9 @@ wait({do_something, OtherActors}, _From, State) ->
     Health = State#state.health,
     
     %% is there a carrot out there?
-    Carrots = lists:filter(fun({{X,Y}, Content}) ->
-				   lists:any(fun(What) ->
-						     case What of {_, carrot} ->
-							     true;
-							 _ -> false
-						     end
-					     end,
-					     Content)
-			      end,
+    io:format("Other Actors: ~p ~n", [OtherActors]),
+
+    Carrots = lists:filter(fun({_, T}) -> T == carrot end,
 			   OtherActors),
     
     if length(Carrots) =/= 0 ->

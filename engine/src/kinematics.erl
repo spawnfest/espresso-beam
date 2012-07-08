@@ -34,20 +34,20 @@ wander(Kinematics, Nearby) ->
 
     %% !FIXME maybe we should implement a limit here, based on
     %% previous orientation?
-    OrientationDelta = random:uniform(80),
+    OrientationDelta = random:uniform(360),
     NewOrientation = normalize_orientation(CurOrientation + OrientationDelta),
     NewPos = orientation2position(CurPosition, NewOrientation),
-    
+        
     NewKinematics =
 	%% if the position is valid
-	case lists:any(fun({X,Y}) -> {X,Y} == NewPos end, Nearby) of	    
+	case lists:any(fun({{X,Y}, _}) -> {X,Y} == NewPos end, Nearby) of
 	    true -> 
 		io:format("~p ~p~n", [NewPos, CurPosition]),
 		#kin{ position = NewPos,
 		      orientation = NewOrientation };
 	    
 	    _ -> %% stay still
-		 %% !FIXME canvas borders are going to be a TRAP!
+		%% !FIXME canvas borders are going to be a TRAP!
 		io:format("staying still~n", []),
 		Kinematics
 	end.
