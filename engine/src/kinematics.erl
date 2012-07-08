@@ -40,7 +40,7 @@ wander(Kinematics, Nearby) ->
     
     NewKinematics =
 	%% if the position is valid
-	case lists:any(fun({{X,Y}, _}) -> {X,Y} == NewPos end, Nearby) of
+	case lists:any(fun({X,Y}) -> {X,Y} == NewPos end, Nearby) of
 	    true -> 
 		io:format("moving ~p ~p~n", [NewPos, CurPosition]),
 		#kin{ position = NewPos,
@@ -63,7 +63,7 @@ wander(Kinematics, Nearby) ->
 seek(Kinematics, Target) ->
     %% compute the new orientation, according to the move we are going
     %% to perform
-    {TargetPosition, _} = Target,
+    TargetPosition = Target#actor.location,
     
     CurPosition = Kinematics#kin.position,
     NewOrientation = position2orientation(CurPosition, TargetPosition),
@@ -83,7 +83,7 @@ flee(Kinematics, Target) ->
     %% run away from target!
     CurPosition = Kinematics#kin.position,
     PrevOrientation = Kinematics#kin.orientation,
-    {TargetPosition, _} = Target,
+    TargetPosition = Target#actor.location,
     
     %% if possible, keep running in the same direction
     NextPos = orientation2position(CurPosition, PrevOrientation),
@@ -117,7 +117,7 @@ pursue(Kinematics, Target) ->
     io:format("~n~n~n~n~nPursue, this is the Target: ~p~n~n~n~n", [TargetPosition]),
     NewOrientation = pursue_orientation(CurPosition, TargetPosition),
     NewPos = orientation2position(CurPosition, NewOrientation),
-
+    
     #kin{ position = NewPos,
 	  orientation = NewOrientation }.
 

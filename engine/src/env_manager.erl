@@ -118,44 +118,44 @@ handle_call({allocate_me, ActorPid, ActorType}, _From, State) ->
     {reply, Location, State#state{actors=[Actor|Actors]}};
 
 
-handle_call({give_me_close_cells_status, ActorPid}, _From, State) ->
-    Env = State#state.environment,
-    Actors = State#state.actors,
+%% handle_call({give_me_close_cells_status, ActorPid}, _From, State) ->
+%%     Env = State#state.environment,
+%%     Actors = State#state.actors,
     
-    [Actor] = lists:filter(fun(A) -> Pid = A#actor.pid,
-				     Pid == ActorPid
-			   end, Actors),
+%%     [Actor] = lists:filter(fun(A) -> Pid = A#actor.pid,
+%% 				     Pid == ActorPid
+%% 			   end, Actors),
     
-    Location = Actor#actor.location,
+%%     Location = Actor#actor.location,
     
-    %% get nearby locations
-    NearbyLocations = get_nearby_locations(Location, 
-					   Env#environment.rows,
-					   Env#environment.cols),
+%%     %% get nearby locations
+%%     NearbyLocations = get_nearby_locations(Location, 
+%% 					   Env#environment.rows,
+%% 					   Env#environment.cols),
     
-    %% find out what are the close actors
-    %% [{Pos, [ListOfActors]}]
-    Reply = 
-	lists:foldl(fun(Loc, Acc0) ->
-			    [{Loc, 
-			      lists:foldl(fun(A, Acc1) ->
-						  P = A#actor.pid,
-						  T = A#actor.type,
-						  ActorPos = A#actor.location,
-						  if Loc == ActorPos -> 
-							  [{P,T}|Acc1];
+%%     %% find out what are the close actors
+%%     %% [{Pos, [ListOfActors]}]
+%%     Reply = 
+%% 	lists:foldl(fun(Loc, Acc0) ->
+%% 			    [{Loc, 
+%% 			      lists:foldl(fun(A, Acc1) ->
+%% 						  P = A#actor.pid,
+%% 						  T = A#actor.type,
+%% 						  ActorPos = A#actor.location,
+%% 						  if Loc == ActorPos -> 
+%% 							  [{P,T}|Acc1];
 						     
-						     true -> 
-							  Acc1
-						  end
-					  end,
-					  [],
-					  Actors)} | Acc0]
-		    end,
-		    [],
-		    NearbyLocations),
+%% 						     true -> 
+%% 							  Acc1
+%% 						  end
+%% 					  end,
+%% 					  [],
+%% 					  Actors)} | Acc0]
+%% 		    end,
+%% 		    [],
+%% 		    NearbyLocations),
     
-    {reply, Reply, State};
+%%     {reply, Reply, State};
 
 handle_call({get_active_actors}, _From, State) ->
     {reply, State#state.actors, State};
@@ -181,7 +181,6 @@ handle_cast({deallocate_me, ActorPid}, #state{actors=Actors} = State) ->
 
 
 handle_cast({update_me, ActorPid, NewPos}, State) ->
-    io:format("Inside update_me", []),
     %% update the position
     Actors = State#state.actors,
     
@@ -202,7 +201,8 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 				    NewActor = #actor{ 
 				      pid=P, 
 				      type=T, 
-				      location=NewPos },
+				      location=NewPos
+				     },
 				    [NewActor|Acc];
 			       
 			       true -> 
@@ -214,7 +214,7 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
     
     %% now, let's decrement the counter of pending updates
     NewPendingUpds = State#state.pending_updates - 1,
-
+    
     io:format("Updates pending --> ~p~n", [NewPendingUpds]),
     
     DiedActors = 
@@ -237,17 +237,47 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 
 
 handle_cast({step}, State) ->
+    Env = State#state.environment,
     Actors = State#state.actors,
     ActorsCount = length(Actors),
     
     NewState = State#state { pending_updates = ActorsCount },
+
     
     %% tell each actor to perform a time step
     lists:foreach(fun(ActorRecord) ->
-			  T = ActorRecord#actor.type,
 			  A = ActorRecord#actor.pid,
-			  io:format("sending next_step to ~p~n",[A]),
-			  T:next_step(A)
+			  T = ActorRecord#actor.type,
+			  P = ActorRecord#actor.location,
+			  io:format("sending move to ~p~n",[A]),
+
+			  %% get the nearby actors
+			  Nearby =
+			      lists:foldl(fun(Ac1, Acc) ->
+						  A1 = Ac1#actor.pid,
+						  T1 = Ac1#actor.type,
+						  P1 = Ac1#actor.location,
+						  
+						  if (P1 == P) and 
+						     (A1 =/= A) -> 
+							  [Ac1|Acc];
+						     %%[{P1, T1}|Acc];
+						     true -> 
+							  Acc
+						  end
+					  end,
+					  [],
+					  Actors),
+
+			  %% get nearby locations
+			  NearbyLocations = 
+			      get_nearby_locations(P,
+						   Env#environment.rows,
+						   Env#environment.cols),
+			  
+			  %% tell process A to move
+			  T:move(A, Nearby, NearbyLocations)
+			      
 		  end,
 		  Actors),
     
@@ -370,7 +400,11 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
 			    L = A#actor.location,
 			    
 			    if (Location == L) and 
-			       (Actor =/= P) -> [{P, T}|Acc];
+			       (Actor =/= P) -> 
+				    [A|Acc];
+				    
+			       %%[{P, T}|Acc];
+			       
 			       true -> Acc
 			    end
 		    end,
@@ -379,17 +413,18 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
 
     %% !FIXME try catch here?
     %% possibly, add it to the dieadactors list
-    io:format("Sending do_something to ~p~n", [Actor]),
+    %%io:format("Sending do_something to ~p~n", [Actor]),
 
     Reply = 
-        try Type:do_something(Actor, CellStatus)
+        try Type:act(Actor, CellStatus)
         catch
             _:_ ->
                 already_dead %% everything is ok. Only to avoid crash
         end,
 
-    io:format("Reply received: ~p~n",[Reply]),
-	
+    io:format("~p ~p has now health: ~p ~n",
+	      [Type, Actor, Reply]),
+    
     %% delete the actor, if it died
     case Reply of deallocate_me -> 
 	    lists:delete(GivenActor, Actors),
