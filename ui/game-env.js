@@ -53,11 +53,10 @@ function writeToScreen(message) {
 
 function stepFunction() {
     interval = setInterval(function() { doSend("step") }, 1000);
-    //increase timeSteps for plotting purposes
-    timeSteps = timeSteps + 1;
 }
 
 function stopFunction() {
+    console.log("Stopped");
     clearInterval(interval);
     doSend("stop");
 }
@@ -158,14 +157,6 @@ function update_canvas(msg) {
                 lines: { show: true },
                 points: { show: true}
             },
-            /*xaxis: {
-                ticks: [0, [Math.PI/2, "\u03c0/2"], [Math.PI, "\u03c0"], [Math.PI * 3/2, "3\u03c0/2"], [Math.PI * 2, "2\u03c0"]]
-            },
-            yaxis: {
-                ticks: 10,
-                min: -2,
-                max: 2
-            },*/
             grid: {
                 backgroundColor: { colors: ["#fff", "#eee"] }
             }
