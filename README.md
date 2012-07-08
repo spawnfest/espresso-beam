@@ -112,5 +112,5 @@ Going onto practical ground, the following things could be implemented/improved:
 Links
 ----
 
-[1] http://www.youtube.com/watch?v=OM-9Q0ac6Zs
+[1] http://www.youtube.com/watch?v=OM-9Q0ac6Zs   
 [2] http://pdincau.wordpress.com/2011/04/25/an-interview-with-francesco-cesarini-francescoc/
