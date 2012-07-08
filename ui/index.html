@@ -1,0 +1,98 @@
+<!DOCTYPE HTML>
+<html>
+<head>  
+<title>Espresso Beam</title>
+  <script src="game-env.js" type="text/javascript"></script>
+  <script language="javascript" type="text/javascript" src="jquery.js"></script>
+  <script language="javascript" type="text/javascript" src="jquery.flot.js"></script>
+  <style type="text/css">
+     /* Define the SilkScreen font */
+     @font-face {
+         font-family: SilkScreen;
+         src: url("fonts/slkscr.ttf") /* TTF file for CSS3 browsers */
+     }
+     /*canvas, img { display:block; margin:1em auto; border:1px solid black; }*/
+     
+     #game-canvas { border:1px solid black; background:url(img/bg.png) }
+     body { 
+         text-transform:uppercase;
+         background:#0f4d8f;
+         color:white;
+         font-family: SilkScreen;
+         overflow-x:hidden;
+         overflow-x:hidden;
+         font-size:20px;
+         margin:10px;
+         padding:10px;
+     }
+     #leftcolumn { 
+         float: left
+     }
+     #rightcolumn {  
+        float: left;
+        padding-left: 50px;
+        border: 0px solid;
+     }
+     #output {  
+        padding-top: 50px;
+        border: 0px solid;
+     }
+     #placeholder {
+        font-family: sans-serif;
+        font-size: 16px;
+        color: #000000;
+     }
+ </style>
+ </head>
+ <body>
+     <h2>Espresso Beam</h2>
+     <div id="container">
+       <div id="leftcolumn"><canvas id="game-canvas" width="800" height="500"></canvas></div>
+       <div id="rightcolumn">
+	 <div id="container">
+	   <div id="leftcolumn"><button onclick="stepFunction()">start simulation</button></div>
+	   <div id="rightcolumn"><button onclick="stopFunction()">stop simulation</button></div> 
+	   <div id="output"></div>
+	   <div id="placeholder" style="width:450px;height:250px;"></div>
+	 </div>
+       </div>
+     </div>
+<script type="text/javascript">
+$(function () {
+    var d1 = [];
+    for (var i = 0; i < Math.PI * 2; i += 0.25)
+        d1.push([i, Math.sin(i)]);
+    
+    var d2 = [];
+    for (var i = 0; i < Math.PI * 2; i += 0.25)
+        d2.push([i, Math.cos(i)]);
+
+    var d3 = [];
+    for (var i = 0; i < Math.PI * 2; i += 0.1)
+        d3.push([i, Math.tan(i)]);
+    
+    $.plot($("#placeholder"), [
+        { label: "wolves",  data: d1},
+        { label: "rabbits",  data: d2},
+        { label: "carrots",  data: d3}
+    ], {
+        series: {
+            lines: { show: true },
+            points: { show: true }
+        },
+        xaxis: {
+            ticks: [0, [Math.PI/2, "\u03c0/2"], [Math.PI, "\u03c0"], [Math.PI * 3/2, "3\u03c0/2"], [Math.PI * 2, "2\u03c0"]]
+        },
+        yaxis: {
+            ticks: 10,
+            min: -2,
+            max: 2
+        },
+        grid: {
+            backgroundColor: { colors: ["#fff", "#eee"] }
+        }
+    });
+});
+</script>
+ </body>
+</html>
