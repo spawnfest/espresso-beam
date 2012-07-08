@@ -18,6 +18,7 @@
 -export([websocket_init/3, websocket_handle/3,  
 	 websocket_info/3, websocket_terminate/3]).
 
+-include("espresso_beam.hrl").
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -35,8 +36,9 @@ init({tcp, http}, Req, _Opts) ->
     end.
  
 handle(Req, State) ->
-    Page = get_page(),
-    {ok, Req2} = cowboy_http_req:reply(200, [{'Content-Type', <<"text/html">>}], Page, Req),  
+    Reply = <<"<http><body>Not implemented.</body></http>">>,
+    Headers = [{<<"Content-Type">>, <<"text/html">>}],
+    {ok, Req2} = cowboy_http_req:reply(404, Headers,  Reply, Req), 
     {ok, Req2, State}.
 
 terminate(_Req, _State) ->
@@ -63,10 +65,13 @@ websocket_init(_Any, Req, []) ->
 %%-------------------------------------------------------------------- 
 websocket_handle({text, <<"step">>}, Req, State) ->
     env_manager:step(),
-    {ok, {text, <<"all the cool kids took a step">>}, Req, State, hibernate};
+    Actors = env_manager:active_actors(),
+    Reply = convert_to_json(Actors),
+    {reply, {text, Reply}, Req, State, hibernate};
 
 websocket_handle({text, <<"stop">>}, Req, State) ->
     application:stop(espresso_beam),
+    halt(),
     {ok, Req, State, hibernate};
 
 websocket_handle(_Any, Req, State) ->
@@ -89,80 +94,21 @@ websocket_terminate(_Reason, _Req, _State) ->
 
 %%--------------------------------------------------------------------
 %% @doc
-%% This function returns the default html/javascript page.
+%% This function converts into json, the list of the actors in the field.
 %%
-%% @spec get_page() -> binary
+%% @spec convert_to_json(Actors) -> Json
 %% @end
 %%-------------------------------------------------------------------- 
+convert_to_json(Actors) ->
+    Data = [{obj,
+	     [{type, Actor#actor.type}, 
+	      {location, tuple_to_list(Actor#actor.location)}]}
+	    || Actor <- Actors],
+    JsonData = {obj, [{env_state, Data}]},
+    rfc4627:encode(JsonData).
 
-get_page() ->
-<<"<!DOCTYPE HTML>
-<html>
-<head>  
-<title>Espresso Beam</title>  
-<script language=\"javascript\" type=\"text/javascript\">
-var wsUri = \"ws://localhost:8080/websocket\";
-var output;  
-
-function init() { 
-    output = document.getElementById(\"output\"); 
-    testWebSocket();  
-}  
-
-function testWebSocket() { 
-    websocket = new WebSocket(wsUri); 
-    websocket.onopen = function(evt) { onOpen(evt) }; 
-    websocket.onclose = function(evt) { onClose(evt) }; 
-    websocket.onmessage = function(evt) { onMessage(evt) }; 
-    websocket.onerror = function(evt) { onError(evt) }; 
-}  
-
-function onOpen(evt) { 
-    writeToScreen(\"Connection established with erlang engine.\"); 
-}  
-
-function onClose(evt) {     
-    writeToScreen(evt); writeToScreen(\"Disconnected from game engine.\"); 
-}  
-
-function onMessage(evt) { 
-    writeToScreen('<span style=\"color: blue;\">RESPONSE: ' + evt.data+'</span>'); 
-    //websocket.close(); 
-}  
-
-function onError(evt) { 
-    writeToScreen('<span style=\"color: red;\">ERROR:</span> ' + evt.data); 
-}  
-
-function doSend(message) { 
-    writeToScreen(\"SENT: \" + message);  
-    websocket.send(message); 
-}  
-
-function writeToScreen(message) { 
-    var pre = document.createElement(\"p\"); 
-    pre.style.wordWrap = \"break-word\"; 
-    pre.innerHTML = message; 
-    output.appendChild(pre); 
-}  
-
-function stepFunction() {
-    setInterval(function() { doSend(\"step\") }, 1000);
-}
-
-function stopFunction() {
-    setInterval(function() { doSend(\"stop\") }, 1000);
-}
-
-window.addEventListener(\"load\", init, false);  
-</script>  
-</head>
-<body>
-    <h2>Espresso Beam</h2>
-    <div>Click the button to start the simulation.</div>
-    <div><button onclick=\"stepFunction()\">start</button></div>
-    <div>Click the button to stop the simulation and shutdown the engine.</div>
-    <div><button onclick=\"stopFunction()\">stop</button></div>   
-    <div id=\"output\"></div>
-</body>
-</html>">>.
+    
+actors() ->
+    [{actor, pid1,wolf,{26,4}},
+     {actor, pid2,rabbit,{12,2}},
+     {actor,pid3,carrot,{13,16}}].
