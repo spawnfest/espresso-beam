@@ -95,10 +95,10 @@ What else?
 ----------
 There are a lot of things in order to make *A tale of blah blah blah* a better software.
 
-But, hey, spawnfest it's just 48 hours and... we have *been working from three 
-different places* (one of us has been even *travelling* while doing the spawnfest) and,
-last but not least, *we never met in person before the spawnfest*. 
-Being able to take part to the spawnfest and submit something is our little victory. :)
+But, hey, spawnfest it's just 48 hours and... we have **been working from three 
+different places** (one of us has been even **travelling** for work while doing the spawnfest) and,
+last but not least, **we never met in person before the spawnfest**. 
+Being able to take part to the spawnfest and submit something is our **little victory**. :)
 
 Going to practical ground, the following things could be implemented/improved:
 
