@@ -1,6 +1,9 @@
 A Tale of Wolves, Rabbits and Carrots
 =====================================
 
+![My image](https://github.com/Spawnfest2012/espresso-beam/raw/master/snapshots/snapshot.png)
+
+
 For the impatient: how to start it all
 --------------------------------------
 
