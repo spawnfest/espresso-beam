@@ -174,11 +174,3 @@ pursue_orientation({X, Y}, {A, Z}) ->
     C = math:sqrt(math:pow(X - A) + math:pow(Y - Z)),
     Alpha = radians2degrees(math:asin((A - X) / C)),
     Beta = 180 - Alpha.
-    
-    
-    
-
-
-     
-
-    

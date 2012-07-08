@@ -95,7 +95,7 @@ idle({next_step}, State) ->
 
 idle({eaten, Pid}, State) ->
     io:format("Carrot ~p has been eaten by ~p. State was: ~p~n", 
-                [self(), Pid, State]),
+	      [self(), Pid, State]),
     env_manager:deallocate_me(self()),
     {stop, normal, State}.
 
