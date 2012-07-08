@@ -93,7 +93,7 @@ Well, this has been our *zona Cesarini*, for real. :)
 
 What else?
 ----------
-There are a lot of things to do to make *A tale of blah blah blah* a better software.
+There are a lot of things in order to make *A tale of blah blah blah* a better software.
 
 But, hey, spawnfest it's just 48 hours and... we have *been working from three 
 different places* (one of us has been even *travelling* while doing the spawnfest) and,
