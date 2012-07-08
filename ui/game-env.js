@@ -49,7 +49,6 @@ function writeToScreen(message) {
     var pre = document.createElement("p"); 
     pre.style.wordWrap = "break-word"; 
     pre.innerHTML = message; 
-    output.appendChild(pre); 
 }  
 
 function stepFunction() {
@@ -109,13 +108,69 @@ function draw(character, x, y) {
 function update_canvas(msg) {
     // clear the canvas, first
     cvs.width  = cWidth * tileSize;
-
+    
+    var rabbitsTmp = 0;
+    var carrotsTmp = 0;
+    var wolvesTmp = 0;
     
     for (i=0; i < msg.env_state.length; i++) {
-	draw (msg.env_state[i].type, 
-	      msg.env_state[i].location[0], 
-	      msg.env_state[i].location[1]);
+        type = msg.env_state[i].type;
+
+        if (type == 'rabbit')
+            rabbitsTmp++;
+        else if (type == 'wolf')
+            wolvesTmp++;
+        else if (type == 'carrot')
+            carrotsTmp++;
+
+	    draw (msg.env_state[i].type, 
+	        msg.env_state[i].location[0], 
+	        msg.env_state[i].location[1]);
     }
+
+    // updating data series
+    rabbits[timeSteps] = new Array(timeSteps, rabbitsTmp);
+    wolves[timeSteps] = new Array(timeSteps, wolvesTmp);
+    carrots[timeSteps] = new Array(timeSteps, carrotsTmp);
+    timeSteps++;
+
+    $.plot(
+        $("#placeholder"),
+        [
+            {
+                label: "Rabbits",
+                color: "green",
+                data: rabbits
+            },
+            {
+                label: "Carrots",
+                color: "orange",
+                data: carrots
+            },
+            {
+                label: "Wolves",
+                color: "black",
+                data: wolves
+            }
+        ],
+        {
+            series: {
+                lines: { show: true },
+                points: { show: true}
+            },
+            xaxis: {
+                ticks: [0, [Math.PI/2, "\u03c0/2"], [Math.PI, "\u03c0"], [Math.PI * 3/2, "3\u03c0/2"], [Math.PI * 2, "2\u03c0"]]
+            },
+            yaxis: {
+                ticks: 10,
+                min: -2,
+                max: 2
+            },
+            grid: {
+                backgroundColor: { colors: ["#fff", "#eee"] }
+            }
+        }
+    );
 }
 
 window.onload = function () {
@@ -134,4 +189,3 @@ var rabbits = [];
 var carrots = [];
 var wolves = [];
 var timeSteps = 0;
-
