@@ -34,8 +34,20 @@
 %% @end
 %%--------------------------------------------------------------------
 start(_StartType, _StartArgs) ->
+    application:start(crypto),
+    application:start(public_key),
+    application:start(ssl),
+    application:start(cowboy),
+
     case espresso_beam_sup:start_link() of
 	{ok, Pid} ->
+	    %% add websocket support
+	    Dispatch = [{'_', [{[<<"websocket">>], espresso_beam_ws, []}]}],
+	    cowboy:start_listener(my_http_listener, 100,
+	      			  cowboy_tcp_transport, [{port, 8080}],
+				  cowboy_http_protocol, [{dispatch, Dispatch}]
+	     			 ),
+	    io:format("* Websockets interface at: http://localhost:8080/websocket~n", []),
 	    {ok, Pid};
 	Error ->
 	    Error
