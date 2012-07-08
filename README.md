@@ -29,7 +29,7 @@ In this world, the following things can happen:
 
 Moreover,
 
-*Wolves can form wolves pack and chase rabbits!*
+*Wolves can form **wolves pack** and chase rabbits!*
 
 Our main goal has been to 
 
@@ -60,7 +60,7 @@ If they don't eat for a long time, they will die.
 Every time a carrot is eaten, a new carrot is spawned and added to the world, 
 keeping the number of carrots constant.
 
-Finally, the *wolf pack* behaviour, has been implemented by the experimental
+Finally, the **wolf pack** behaviour, has been implemented by the experimental
 `pg` module: when a wolf sees a rabbit close to him, it immediately notifies
 his fellows calling
 
@@ -77,9 +77,9 @@ state of the world, then gives it back in JSON format.
 
 Who
 ---
-Loris Fichera <loris.fichera@gmail.com>   
-Mirko Bonadei <mirko.bonadei@gmail.com>   
-Paolo D'Incau <paolo.dincau@gmail.com>    
+Loris Fichera  <loris.fichera@gmail.com>   
+Mirko Bonadei  <mirko.bonadei@gmail.com>   
+Paolo D'Incau  <paolo.dincau@gmail.com>    
 
 Why?
 ----
