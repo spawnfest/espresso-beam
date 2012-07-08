@@ -13,7 +13,7 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/0, next_step/1]).
+-export([start_link/0, next_step/1, do_something/2]).
 
 %% gen_fsm callbacks
 -export([init/1, idle/2, wait/3, handle_event/3, handle_sync_event/4, handle_info/3, 
@@ -46,6 +46,9 @@ start_link() ->
 
 next_step(Pid) ->
     gen_fsm:send_event(Pid, {next_step}).
+
+do_something(Pid, CellStatus) ->
+    gen_fsm:sync_send_event(Pid, {do_something, CellStatus}).
 
 %%%===================================================================
 %%% gen_fsm callbacks
@@ -146,7 +149,8 @@ idle({next_step}, State) ->
     %%  },
 
     %% %% tell the env_manager the new_position
-    %% Nearby = env_manager:update_me(self(), NextPos),
+    NextPos = State#state.position, %% !FIXME wolves are staying still
+    env_manager:update_me(self(), NextPos),
     {next_state, wait, NewState}.
 
 

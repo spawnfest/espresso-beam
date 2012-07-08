@@ -349,12 +349,10 @@ filter_out_invalid_locations(ListOfPos, MaxRows, MaxCols) ->
     
 
 perform_life_cycle(Actors) ->
-    io:format("here~n"),
     perform_life_cycle(Actors, Actors, []).
 
 perform_life_cycle([], Actors, DiedActors) -> DiedActors;
 perform_life_cycle([GivenActor|Rest], Actors, DiedActors) -> 
-    io:format("here1~n"),
     Actor = GivenActor#actor.pid,
     Type = GivenActor#actor.type,
     Location = GivenActor#actor.location,
@@ -389,6 +387,8 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
 
     %% !FIXME try catch here?
     %% possibly, add it to the dieadactors list
+    io:format("Sending do_something to ~p~n", [Actor]),
+
     Reply = Type:do_something(Actor, CellStatus),
 
     io:format("Reply received: ~p~n",[Reply]),

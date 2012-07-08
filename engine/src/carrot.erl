@@ -13,7 +13,7 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/0, eat/2, next_step/1]).
+-export([start_link/0, eat/2, next_step/1, do_something/2]).
 
 %% gen_fsm callbacks
 -export([init/1, idle/2, idle/3, handle_event/3, handle_sync_event/4, 
@@ -46,6 +46,9 @@ eat(CarrotPid, EaterPid) ->
 
 next_step(Pid) ->
     gen_fsm:send_event(Pid, {next_step}).
+
+do_something(Pid, CellStatus) ->
+    gen_fsm:sync_send_event(Pid, {do_something, CellStatus}).
 
 %%%===================================================================
 %%% gen_fsm callbacks
@@ -85,7 +88,11 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 idle({next_step}, State) ->
-	{next_state, idle, State};
+    %% carrots don't move
+    NextPos = State#state.position, 
+    env_manager:update_me(self(), NextPos),
+    {next_state, idle, State};
+
 idle({eaten, Pid}, State) ->
     io:format("Carrot ~p has been eaten by ~p. State was: ~p~n", 
                 [self(), Pid, State]),
@@ -93,6 +100,7 @@ idle({eaten, Pid}, State) ->
     {stop, normal, State}.
 
 idle({do_something, _OtherActors}, _From, State) ->
+    io:format("inside the callback~n"),
     {reply, ok, idle, State}.
 
 %%--------------------------------------------------------------------

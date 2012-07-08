@@ -17,3 +17,7 @@ Things to do
  * interface engine with cowboy
    * implement message exchange
    * JSON
+
+ * code refactor
+   * sometimes "location", sometimes "position": harmonize that!
+   * sets instead of lists

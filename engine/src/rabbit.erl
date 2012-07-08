@@ -49,7 +49,7 @@ next_step(Pid) ->
     gen_fsm:send_event(Pid, {next_step}).
 
 do_something(Pid, CellStatus) ->
-    gen_fsm:send_sync_event(Pid, {do_something, CellStatus}).
+    gen_fsm:sync_send_event(Pid, {do_something, CellStatus}).
 
 %%%===================================================================
 %%% gen_fsm callbacks
