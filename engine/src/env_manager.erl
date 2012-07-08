@@ -244,10 +244,30 @@ handle_cast({step}, State) ->
     
     %% tell each actor to perform a time step
     lists:foreach(fun(ActorRecord) ->
-			  T = ActorRecord#actor.type,
 			  A = ActorRecord#actor.pid,
-			  io:format("sending next_step to ~p~n",[A]),
-			  T:next_step(A)
+			  T = ActorRecord#actor.type,
+			  P = ActorRecord#actor.location,
+			  io:format("sending move to ~p~n",[A]),
+
+			  %% get the nearby locations
+			  Nearby =
+			      lists:foldl(fun(Ac1, Acc) ->
+						  A1 = Ac1#actor.pid,
+						  T1 = Ac1#actor.type,
+						  P1 = Ac1#actor.location,
+						  
+						  if (P1 == P) and 
+						     (A1 =/= A) -> 
+							  [{P1, T1}|Acc];
+						     true -> 
+							  Acc
+						  end
+					  end,
+					  [],
+					  Actors),
+			  
+			  %% tell process A to move
+			  T:move(A, Nearby)
 		  end,
 		  Actors),
     
@@ -382,7 +402,7 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
     io:format("Sending do_something to ~p~n", [Actor]),
 
     Reply = 
-        try Type:do_something(Actor, CellStatus)
+        try Type:act(Actor, CellStatus)
         catch
             _:_ ->
                 already_dead %% everything is ok. Only to avoid crash

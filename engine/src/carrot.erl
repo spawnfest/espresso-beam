@@ -13,7 +13,10 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/0, eat/2, next_step/1, do_something/2]).
+-export([start_link/0, 
+	 eat/2, 
+	 move/2,
+	 act/2]).
 
 %% gen_fsm callbacks
 -export([init/1, idle/2, idle/3, handle_event/3, handle_sync_event/4, 
@@ -44,11 +47,12 @@ start_link() ->
 eat(CarrotPid, EaterPid) ->
     gen_fsm:send_event(CarrotPid, {eaten, EaterPid}).
 
-next_step(Pid) ->
-    gen_fsm:send_event(Pid, {next_step}).
+move(Pid, Nearby) ->
+    gen_fsm:send_event(Pid, {move, Nearby}).
 
-do_something(Pid, CellStatus) ->
-    gen_fsm:sync_send_event(Pid, {do_something, CellStatus}).
+act(Pid, CellStatus) ->
+    gen_fsm:sync_send_event(Pid, {act, CellStatus}).
+
 
 %%%===================================================================
 %%% gen_fsm callbacks
@@ -87,7 +91,7 @@ init([]) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-idle({next_step}, State) ->
+idle({next_step, _}, State) ->
     %% carrots don't move
     NextPos = State#state.position, 
     env_manager:update_me(self(), NextPos),
@@ -99,7 +103,7 @@ idle({eaten, Pid}, State) ->
     env_manager:deallocate_me(self()),
     {stop, normal, State}.
 
-idle({do_something, _OtherActors}, _From, State) ->
+idle({act, _}, _From, State) ->
     io:format("inside the callback~n"),
     {reply, ok, idle, State}.
 
