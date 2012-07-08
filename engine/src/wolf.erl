@@ -137,7 +137,7 @@ wait({do_something, OtherActors}, _From, State) ->
     if length(Rabbits) =/= 0 ->
      	    %% eat the first Rabbit
      	    [R|_] = Rabbits,
-     	    rabbit:eat(R),
+     	    rabbit:eat(R, self()),
      	    NewState = State#state{ health = Health + 2 };
 
         true ->

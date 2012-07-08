@@ -170,10 +170,10 @@ wait({do_something, OtherActors}, _From, State) ->
     
     if length(Carrots) =/= 0 ->
 	    %% eat it
-	    [C|_] = Carrots,
-	    carrot:eat(C),
+	    [{C, _}|_] = Carrots,
+	    carrot:eat(C, self()),
 	    NewState = State#state{ health = Health + 2 };
-
+       
        true ->
 	    %% else, decrease the health level
 	    NewState = State#state{ health = Health - 1 }

@@ -191,12 +191,12 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 			    P = A#actor.pid,
 			    T = A#actor.type,
 			    L = A#actor.location,
-
+			    
 			    if P == ActorPid -> 
 				    NewActor = #actor{ 
 				      pid=P, 
 				      type=T, 
-				      location=L },
+				      location=NewPos },
 				    [NewActor|Acc];
 			       
 			       true -> 
