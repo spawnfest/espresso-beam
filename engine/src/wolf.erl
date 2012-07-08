@@ -126,43 +126,34 @@ idle({next_step}, State) ->
 
 
 %% wait for a list of other actors who are in our same cell
-wait({do_something, _OtherActors}, _From, State) ->
-    NewState = State,
+wait({do_something, OtherActors}, _From, State) ->
     %% %% get my health status
-    %% Health = State#state.health,
+    Health = State#state.health,
     
-    %% %% is there a carrot out there?
-    %% Carrots = lists:filter(fun({{X,Y}, Content}) ->
-    %% 				   lists:any(fun(What) ->
-    %% 						     case What of {_, carrot} ->
-    %% 							     true;
-    %% 							 _ -> false
-    %% 						     end
-    %% 					     end,
-    %% 					     Content)
-    %% 			      end,
-    %% 			   OtherActors),
+    %% %% is there a rabbit out there?
+    Rabbits = lists:filter(fun({_, T}) -> T == rabbit end,
+                OtherActors),
     
-    %% if length(Carrots) =/= 0 ->
-    %% 	    %% eat it
-    %% 	    [C|_] = Carrots,
-    %% 	    carrot:eaten(C),
-    %% 	    NewState = State#state{ health = Health + 2 };
+    if length(Rabbits) =/= 0 ->
+     	    %% eat the first Rabbit
+     	    [R|_] = Rabbits,
+     	    rabbit:eat(R),
+     	    NewState = State#state{ health = Health + 2 };
 
-    %%    true ->
-    %% 	    %% else, decrease the health level
-    %% 	    NewState = State#state{ health = Health - 1 }
-    %% end,
+        true ->
+     	    %% else, decrease the health level
+     	    NewState = State#state{ health = Health - 1 }
+    end,
 
-
+    UpdatedHealth = NewState#state.health,
     %% %% if health == 0 -> die
     %% %% else -> go back to idle
-    %% if Health == 0 ->
-    %% 	    {stop, normal, deallocate_me, NewState};
-    %%    true ->
-    %% 	    {reply, ok, idle, NewState}
-    %% end.
-    {reply, ok, idle, NewState}.
+
+    if UpdatedHealth == 0 ->
+     	    {stop, normal, deallocate_me, NewState};
+       true ->
+     	    {reply, ok, idle, NewState}
+    end.
 
 %%--------------------------------------------------------------------
 %% @private

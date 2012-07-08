@@ -13,7 +13,8 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/0, idle/2, wait/3, do_something/2, next_step/1]).
+-export([start_link/0, idle/2, wait/3, do_something/2, next_step/1,
+         eat/2]).
 
 %% gen_fsm callbacks
 -export([init/1, handle_event/3,
@@ -42,6 +43,9 @@
 %%--------------------------------------------------------------------
 start_link() ->
     gen_fsm:start_link(?MODULE, [], []).
+
+eat(RabbitPid, EaterPid) ->
+    gen_fsm:send_all_state_event(RabbitPid, {eaten, EaterPid}).
 
 next_step(Pid) ->
     io:format("next step received by module~n"),
@@ -167,7 +171,7 @@ wait({do_something, OtherActors}, _From, State) ->
     if length(Carrots) =/= 0 ->
 	    %% eat it
 	    [C|_] = Carrots,
-	    carrot:eaten(C),
+	    carrot:eat(C),
 	    NewState = State#state{ health = Health + 2 };
 
        true ->
@@ -176,9 +180,10 @@ wait({do_something, OtherActors}, _From, State) ->
     end,
 
 
+    UpdatedHealth = NewState#state.health,
     %% if health == 0 -> die
     %% else -> go back to idle
-    if Health == 0 ->
+    if UpdatedHealth == 0 ->
 	    {stop, normal, deallocate_me, NewState};
        true ->
 	    {reply, ok, idle, NewState}
@@ -222,6 +227,13 @@ state_name(_Event, _From, State) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
+handle_event({eaten, Pid}, StateName, State) ->
+    io:format("~nRabbit ~p has been eaten by ~p. While it was 
+        in state ~p, and its internal state was ~p~n", 
+        [self(), Pid, StateName, State]
+    ),
+    env_manager:deallocate_me(self()),
+    {stop, normal, State};
 handle_event(_Event, StateName, State) ->
     {next_state, StateName, State}.
 
