@@ -1,10 +1,12 @@
 %%%-------------------------------------------------------------------
-%%% @author Paolo <paolo@ubuntu.ubuntu-domain>
-%%% @copyright (C) 2012, Paolo
+%%% @author Loris Fichera <loris.fichera@gmail.com> 
+%%% @author Mirko Bonadei <mirko.bonadei@gmail.com>
+%%% @author Paolo D'Incau <paolo.dincau@gmail.com> 
+%%% @copyright (C) 2012, Loris Fichera, Mirko Bonadei, Paolo D'Incau
 %%% @doc
 %%%
 %%% @end
-%%% Created :  7 Jul 2012 by Paolo <paolo@ubuntu.ubuntu-domain>
+%%% Created :  7 Jul 2012 by Paolo D'Incau <paolo.dincau@gmail.com>
 %%%-------------------------------------------------------------------
 -module(carrot_sup).
 

@@ -1,6 +1,8 @@
 %%%-------------------------------------------------------------------
 %%% @author Paolo D'Incau <paolo.dincau@gmail.com>
-%%% @copyright (C) 2012, Paolo
+%%% @author Loris Fichera <loris.fichera@gmail.com> 
+%%% @author Mirko Bonadei <mirko.bonadei@gmail.com>
+%%% @copyright (C) 2012, Paolo D'Incau, Loris Fichera, Mirko Bonadei
 %%% @doc
 %%%
 %%% @end
