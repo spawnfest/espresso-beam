@@ -21,8 +21,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, { kinematics=nil,
-		 health=nil }).
+-record(state, { kinematics=nil, health=nil }).
 
 -include("../include/espresso_beam.hrl").
 
@@ -72,8 +71,7 @@ init([]) ->
 
 
     Kin = #kin{ position = Pos },
-    {ok, idle, #state{  kinematics=Kin,
-			health=10 }}.
+    {ok, idle, #state{ kinematics=Kin, health=10 }}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -91,60 +89,38 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 idle({next_step}, State) ->
-    NewState = State,
     %% %% get the kinematics and the current position
-    %% Pos = State#state.position,
-    %% Kin = State#state.kinematics,
-    %% Health = State#state.health,
+    Kin = State#state.kinematics,
+    Health = State#state.health,
     
     %% %% ask the env_manager for the nearby cells
-    %% Nearby = env_manager:give_me_close_cells_status(self()),
+    Nearby = env_manager:give_me_close_cells_status(self()),
     
-    %% %% check the nearby cells for carrots or wolves
-    %% Wolves = lists:filter(fun({{X,Y}, Content}) ->
-    %% 				  lists:any(fun(What) ->
-    %% 						    case What of {_, wolf} ->
-    %% 							    true;
-    %% 							_ -> false
-    %% 						    end
-    %% 					    end,
-    %% 					    Content)
-    %% 			  end,
-    %% 			  Nearby),
-    
-    %% Carrots = lists:filter(fun({{X,Y}, Content}) ->
-    %% 				   lists:any(fun(What) ->
-    %% 						     case What of {_, carrot} ->
-    %% 							     true;
-    %% 							 _ -> false
-    %% 						     end
-    %% 					     end,
-    %% 					     Content)
-    %% 			      end,
-    %% 			   Nearby),
-    
+    %% %% check the nearby cells for rabbits
+    Rabbits = lists:filter(fun({{X,Y}, Content}) ->
+     				  lists:any(fun(What) ->
+     						    case What of {_, rabbit} ->
+     							    true;
+     							_ -> false
+     						    end
+     					    end,
+     					    Content)
+     			  end,
+     			  Nearby),
+
     %% %% according to the content of the nearby cells, take a new behaviour
-    %% {NextPos, NewKin} = 
-    %% 	if length(Wolves) =/= 0 ->
-    %% 		[W|_] = Wolves,
-    %% 		kinematics:flee(Kin, W);
-	   
-    %% 	   length(Carrots) =/= 0 ->
-    %% 		[C|_] = Carrots,
-    %% 		kinematics:seek(Kin, C);
-	   
-    %% 	   true ->
-    %% 		kinematics:wander(Kin, Pos, Nearby)
-    %% 	end,
-    
-    %% NewState = #state{
-    %%   position = NextPos,
-    %%   kinematics = NewKin,
-    %%   health = Health
-    %%  },
+    NewKin = 
+    	if length(Rabbits) =/= 0 ->
+     		    [R|_] = Rabbits,
+     		    kinematics:pursue(Kin, R);
+     	    true ->
+     		    kinematics:wander(Kin, Nearby)
+     	end,
+
+    NewState = #state{ kinematics = NewKin, health = Health },
 
     %% %% tell the env_manager the new_position
-    NextPos = (State#state.kinematics)#kin.position, %% !FIXME wolves are staying still
+    NextPos = (NewState#state.kinematics)#kin.position,
     env_manager:update_me(self(), NextPos),
     {next_state, wait, NewState}.
 
