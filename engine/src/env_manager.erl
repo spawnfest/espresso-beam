@@ -118,44 +118,44 @@ handle_call({allocate_me, ActorPid, ActorType}, _From, State) ->
     {reply, Location, State#state{actors=[Actor|Actors]}};
 
 
-handle_call({give_me_close_cells_status, ActorPid}, _From, State) ->
-    Env = State#state.environment,
-    Actors = State#state.actors,
+%% handle_call({give_me_close_cells_status, ActorPid}, _From, State) ->
+%%     Env = State#state.environment,
+%%     Actors = State#state.actors,
     
-    [Actor] = lists:filter(fun(A) -> Pid = A#actor.pid,
-				     Pid == ActorPid
-			   end, Actors),
+%%     [Actor] = lists:filter(fun(A) -> Pid = A#actor.pid,
+%% 				     Pid == ActorPid
+%% 			   end, Actors),
     
-    Location = Actor#actor.location,
+%%     Location = Actor#actor.location,
     
-    %% get nearby locations
-    NearbyLocations = get_nearby_locations(Location, 
-					   Env#environment.rows,
-					   Env#environment.cols),
+%%     %% get nearby locations
+%%     NearbyLocations = get_nearby_locations(Location, 
+%% 					   Env#environment.rows,
+%% 					   Env#environment.cols),
     
-    %% find out what are the close actors
-    %% [{Pos, [ListOfActors]}]
-    Reply = 
-	lists:foldl(fun(Loc, Acc0) ->
-			    [{Loc, 
-			      lists:foldl(fun(A, Acc1) ->
-						  P = A#actor.pid,
-						  T = A#actor.type,
-						  ActorPos = A#actor.location,
-						  if Loc == ActorPos -> 
-							  [{P,T}|Acc1];
+%%     %% find out what are the close actors
+%%     %% [{Pos, [ListOfActors]}]
+%%     Reply = 
+%% 	lists:foldl(fun(Loc, Acc0) ->
+%% 			    [{Loc, 
+%% 			      lists:foldl(fun(A, Acc1) ->
+%% 						  P = A#actor.pid,
+%% 						  T = A#actor.type,
+%% 						  ActorPos = A#actor.location,
+%% 						  if Loc == ActorPos -> 
+%% 							  [{P,T}|Acc1];
 						     
-						     true -> 
-							  Acc1
-						  end
-					  end,
-					  [],
-					  Actors)} | Acc0]
-		    end,
-		    [],
-		    NearbyLocations),
+%% 						     true -> 
+%% 							  Acc1
+%% 						  end
+%% 					  end,
+%% 					  [],
+%% 					  Actors)} | Acc0]
+%% 		    end,
+%% 		    [],
+%% 		    NearbyLocations),
     
-    {reply, Reply, State};
+%%     {reply, Reply, State};
 
 handle_call({get_active_actors}, _From, State) ->
     {reply, State#state.actors, State};
@@ -237,10 +237,12 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 
 
 handle_cast({step}, State) ->
+    Env = State#state.environment,
     Actors = State#state.actors,
     ActorsCount = length(Actors),
     
     NewState = State#state { pending_updates = ActorsCount },
+
     
     %% tell each actor to perform a time step
     lists:foreach(fun(ActorRecord) ->
@@ -249,7 +251,7 @@ handle_cast({step}, State) ->
 			  P = ActorRecord#actor.location,
 			  io:format("sending move to ~p~n",[A]),
 
-			  %% get the nearby locations
+			  %% get the nearby actors
 			  Nearby =
 			      lists:foldl(fun(Ac1, Acc) ->
 						  A1 = Ac1#actor.pid,
@@ -258,16 +260,23 @@ handle_cast({step}, State) ->
 						  
 						  if (P1 == P) and 
 						     (A1 =/= A) -> 
-							  [{P1, T1}|Acc];
+							  [Ac1|Acc];
+						     %%[{P1, T1}|Acc];
 						     true -> 
 							  Acc
 						  end
 					  end,
 					  [],
 					  Actors),
+
+			  %% get nearby locations
+			  NearbyLocations = 
+			      get_nearby_locations(P,
+						   Env#environment.rows,
+						   Env#environment.cols),
 			  
 			  %% tell process A to move
-			  T:move(A, Nearby)
+			  T:move(A, Nearby, NearbyLocations)
 		  end,
 		  Actors),
     
@@ -390,7 +399,11 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
 			    L = A#actor.location,
 			    
 			    if (Location == L) and 
-			       (Actor =/= P) -> [{P, T}|Acc];
+			       (Actor =/= P) -> 
+				    [A|Acc];
+				    
+			       %%[{P, T}|Acc];
+			       
 			       true -> Acc
 			    end
 		    end,
@@ -407,9 +420,9 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
             _:_ ->
                 already_dead %% everything is ok. Only to avoid crash
         end,
-
+    
     io:format("Reply received: ~p~n",[Reply]),
-	
+    
     %% delete the actor, if it died
     case Reply of deallocate_me -> 
 	    lists:delete(GivenActor, Actors),

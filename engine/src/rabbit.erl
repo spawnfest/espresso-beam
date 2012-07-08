@@ -19,7 +19,7 @@
 	 eat/3,
 	 flee/2,
 	 flee/3,
-	 move/2,
+	 move/3,
 	 act/2
 	]).
 
@@ -54,8 +54,8 @@ start_link() ->
 eat(RabbitPid, EaterPid) ->
     gen_fsm:send_all_state_event(RabbitPid, {eaten, EaterPid}).
 
-move(Pid, Nearby) ->
-    gen_fsm:send_event(Pid, {move, Nearby}).
+move(Pid, Nearby, NearbyLocations) ->
+    gen_fsm:send_event(Pid, {move, Nearby, NearbyLocations}).
 
 act(Pid, CellStatus) ->
     gen_fsm:sync_send_event(Pid, {act, CellStatus}).
@@ -104,10 +104,10 @@ init([]) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-wander({move, Nearby}, State) ->
+wander({move, Nearby, NearbyLocations}, State) ->    
     Kin = State#state.kinematics,
     
-    {Carrots, Wolves} = sense(Nearby), %%!FIXME sense to be implemented
+    {Carrots, Wolves} = sense(Nearby),
     
     {NewState, NextState} = 
 	if length(Wolves) > 0 ->
@@ -131,13 +131,15 @@ wander({move, Nearby}, State) ->
 	   true ->
 		%% if there's nothing around...	
 		%% keep wandering!
-		NewKin = kinematics:wander(Kin, Nearby),
+		NewKin = kinematics:wander(Kin, NearbyLocations),
 		
 		%% next state is wander!
 		{State#state { kinematics = NewKin }, wander}
 	   end,
     
     %% update the env_manager on my new position
+    io:format("Old Pos is ~p ~n", [Kin#kin.position]),
+    io:format("New Pos is ~p ~n~n", [NewKin#kin.position]),
     env_manager:update_me(self(), NewKin#kin.position),
     {next_state, NextState, NewState}.
 
@@ -158,14 +160,16 @@ eat({act, CellContent}, _From, State) ->
     io:format("Other Actors in my cell: ~p ~n", [CellContent]),
     
     %% try to eat a carrot and update the health
-    Carrots = lists:filter(fun({_, T}) -> T == carrot end,
+    Carrots = lists:filter(fun(A) -> T = A#actor.type,
+				     T == carrot 
+			   end,
 			   CellContent),
    
     UpdatedHealth = 
 	if length(Carrots) =/= 0 ->
 		%% eat it
-		[{C, _}|_] = Carrots,
-		carrot:eat(C, self()),
+		[C|_] = Carrots,
+		carrot:eat(C#actor.pid, self()),
 		Health + 2;
 	   
 	   true ->
@@ -192,7 +196,7 @@ flee({move, Nearby}, State) ->
     Kin = State#state.kinematics,
     
     %% running away from wolves, don't care about carrots
-    {_, Wolves} = sense(Nearby), %%!FIXME sense to be implemented
+    {_, Wolves} = sense(Nearby),
     
     {NewState, NextState} = 
 	if length(Wolves) > 0 ->
@@ -317,8 +321,8 @@ sense(Nearby) ->
     Wolves = 
 	lists:filter(fun({{X,Y}, Content}) ->
 			     lists:any(fun(What) ->
-					       case What of {_, wolf} ->
-						       true;
+					       T = What#actor.type,
+					       case T of wolf -> true;
 						   _ -> false
 					       end
 				       end,
@@ -329,8 +333,8 @@ sense(Nearby) ->
     Carrots = 
 	lists:filter(fun({{X,Y}, Content}) ->
 			     lists:any(fun(What) ->
-					       case What of {_, carrot} ->
-						       true;
+					       T = What#actor.type,
+					       case T of carrot -> true;
 						   _ -> false
 					       end
 				       end,

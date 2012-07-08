@@ -15,7 +15,7 @@
 %% API
 -export([start_link/0, 
 	 eat/2, 
-	 move/2,
+	 move/3,
 	 act/2]).
 
 %% gen_fsm callbacks
@@ -47,8 +47,8 @@ start_link() ->
 eat(CarrotPid, EaterPid) ->
     gen_fsm:send_event(CarrotPid, {eaten, EaterPid}).
 
-move(Pid, Nearby) ->
-    gen_fsm:send_event(Pid, {move, Nearby}).
+move(Pid, _, _) ->
+    gen_fsm:send_event(Pid, {move, nil}).
 
 act(Pid, CellStatus) ->
     gen_fsm:sync_send_event(Pid, {act, CellStatus}).
