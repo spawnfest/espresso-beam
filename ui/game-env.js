@@ -1,3 +1,6 @@
+// Authors: Loris Fichera, Mirko Bonadei, Paolo D'Incau
+// Created: 7 July 2012
+
 var wsUri = "ws://localhost:8080/websocket";
 var output;  
 var interval;
