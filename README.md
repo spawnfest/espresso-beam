@@ -100,7 +100,7 @@ different places** (one of us has been even **travelling** for work while doing 
 last but not least, **we never met in person before the spawnfest**. 
 Being able to take part to the spawnfest and submit something is our **little victory**. :)
 
-Going to practical ground, the following things could be implemented/improved:
+Going onto practical ground, the following things could be implemented/improved:
 
  * actors must not go outside of the playing field
  * kinematics can be improved: sometimes movements are not too... *intelligent* :)
