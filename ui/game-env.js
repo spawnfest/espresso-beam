@@ -56,7 +56,6 @@ function stepFunction() {
 }
 
 function stopFunction() {
-    console.log("Stopped");
     clearInterval(interval);
     doSend("stop");
 }
