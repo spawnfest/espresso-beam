@@ -37,12 +37,12 @@ wander(Kinematics, Nearby) ->
     OrientationDelta = random:uniform(360),
     NewOrientation = normalize_orientation(CurOrientation + OrientationDelta),
     NewPos = orientation2position(CurPosition, NewOrientation),
-        
+    
     NewKinematics =
 	%% if the position is valid
 	case lists:any(fun({{X,Y}, _}) -> {X,Y} == NewPos end, Nearby) of
 	    true -> 
-		io:format("~p ~p~n", [NewPos, CurPosition]),
+		io:format("moving ~p ~p~n", [NewPos, CurPosition]),
 		#kin{ position = NewPos,
 		      orientation = NewOrientation };
 	    
