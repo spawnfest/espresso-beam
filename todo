@@ -3,12 +3,11 @@ Things to do
 
  * engine
    * implement the wolf
-   * implement flee and pursue
    * implement the "wolf pack" behaviour (wolves calling other wolves when they sense a rabbit)
-   * duplication of rabbits/wolves
+   * duplication of rabbits/wolves 
    * "eat" action (with process dying) + try/catch in env_manager
-   * implement the flee behaviour
-   * implement the pursue behaviour
+   * implement the flee behaviour -- DONE
+   * implement the pursue behaviour -- temporarily DONE
 
  * ui 
    * some nice graphics (8bit characters)
@@ -20,4 +19,4 @@ Things to do
 
  * code refactor
    * sometimes "location", sometimes "position": harmonize that!
-   * sets instead of lists
+   * sets instead of lists -- DONE
