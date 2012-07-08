@@ -13,15 +13,20 @@
 -behaviour(gen_fsm).
 
 %% API
--export([start_link/0, next_step/1, do_something/2]).
+-export([start_link/0, 
+	 move/3,
+	 act/2]).
 
 %% gen_fsm callbacks
--export([init/1, idle/2, wait/3, handle_event/3, handle_sync_event/4, 
+-export([init/1, 
+	 wander/2,
+	 wander/3,
+	 handle_event/3, handle_sync_event/4, 
          handle_info/3, terminate/3, code_change/4]).
 
 -define(SERVER, ?MODULE).
 
--record(state, { kinematics=nil, health=nil }).
+-record(state, { kinematics=nil, health=nil, target=nil }).
 
 -include("../include/espresso_beam.hrl").
 
@@ -41,11 +46,11 @@
 start_link() ->
     gen_fsm:start_link(?MODULE, [], []).
 
-next_step(Pid) ->
-    gen_fsm:send_event(Pid, {next_step}).
+move(Pid, Nearby, NearbyLocations) ->
+    gen_fsm:send_event(Pid, {move, Nearby, NearbyLocations}).
 
-do_something(Pid, CellStatus) ->
-    gen_fsm:sync_send_event(Pid, {do_something, CellStatus}).
+act(Pid, CellStatus) ->
+    gen_fsm:sync_send_event(Pid, {act, CellStatus}).
 
 %%%===================================================================
 %%% gen_fsm callbacks
@@ -71,7 +76,7 @@ init([]) ->
 
 
     Kin = #kin{ position = Pos },
-    {ok, idle, #state{ kinematics=Kin, health=10 }}.
+    {ok, wander, #state{ kinematics=Kin, health=10 }}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -88,74 +93,133 @@ init([]) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-idle({next_step}, State) ->
+wander({move, Nearby, NearbyLocations}, State) ->
     %% %% get the kinematics and the current position
     Kin = State#state.kinematics,
+
+    Rabbits = sense(Nearby),
+    
+    {NewState, NextState} = 
+	if length(Rabbits) > 0 ->
+		%% if there are rabbits nearby...
+		%% chase them!
+		%% !FIXME implement WOLF PACK HERE!
+		[R|_] = Rabbits,
+		NewKin = kinematics:pursue(Kin, R),
+		
+		%% next state is pursue
+		{State#state { kinematics = NewKin, target = R }, pursue};
+	   
+	   true ->
+		%% if there's nothing around...	
+		%% keep wandering!
+		NewKin = kinematics:wander(Kin, NearbyLocations),
+		
+		%% next state is wander!
+		{State#state { kinematics = NewKin }, wander}
+	   end,
+
+    env_manager:update_me(self(), NewKin#kin.position),
+    {next_state, NextState, NewState}.
+
+
+wander({act, _}, _From, State) ->
+    %% was wandering, nobody around, nothing to do
+    %% keep wandering
     Health = State#state.health,
+    UpdatedHealth = Health - 1,
+    NewState = State#state { health = UpdatedHealth },
     
-    %% %% ask the env_manager for the nearby cells
-    Nearby = env_manager:give_me_close_cells_status(self()),
-    
-    %% %% check the nearby cells for rabbits
-    Rabbits = lists:filter(fun({{X,Y}, Content}) ->
-     				  lists:any(fun(What) ->
-     						    case What of {_, rabbit} ->
-     							    true;
-     							_ -> false
-     						    end
-     					    end,
-     					    Content)
-     			  end,
-     			  Nearby),
-
-    %% %% according to the content of the nearby cells, take a new behaviour
-    NewKin = 
-    	if length(Rabbits) =/= 0 ->
-     		    [R|_] = Rabbits,
-                %% FIXME: this is a must! Need implementation
-                %%pg:esend(wolves, {rabbit_detected, R}),
-     		    kinematics:pursue(Kin, R);
-     	    true ->
-     		    kinematics:wander(Kin, Nearby)
-     	end,
-
-    NewState = #state{ kinematics = NewKin, health = Health },
-
-    %% %% tell the env_manager the new_position
-    NextPos = (NewState#state.kinematics)#kin.position,
-    env_manager:update_me(self(), NextPos),
-    {next_state, wait, NewState}.
-
-    
-%% wait for a list of other actors who are in our same cell
-wait({do_something, OtherActors}, _From, State) ->
-    %% %% get my health status
-    Health = State#state.health,
-    
-    %% %% is there a rabbit out there?
-    Rabbits = lists:filter(fun({_, T}) -> T == rabbit end,
-                OtherActors),
-    
-    if length(Rabbits) =/= 0 ->
-     	    %% eat the first Rabbit
-     	    [R|_] = Rabbits,
-     	    rabbit:eat(R, self()),
-     	    NewState = State#state{ health = Health + 2 };
-
-        true ->
-     	    %% else, decrease the health level
-     	    NewState = State#state{ health = Health - 1 }
-    end,
-
-    UpdatedHealth = NewState#state.health,
-    %% %% if health == 0 -> die
-    %% %% else -> go back to idle
-
     if UpdatedHealth == 0 ->
-     	    {stop, normal, deallocate_me, NewState};
+	    {stop, normal, deallocate_me, NewState}; %% die 
        true ->
-     	    {reply, ok, idle, NewState}
+	    {reply, UpdatedHealth, wander, NewState}
     end.
+
+
+pursue({move, Nearby, NearbyLocations}, State) ->
+    Kin = State#state.kinematics,
+    CurrentTarget = State#state.target,
+    TargetPid = CurrentTarget#actor.pid,
+    IsAlive = is_process_alive(TargetPid),
+    
+
+    {NewState, NextState} = 
+	if IsAlive ->
+		%% try to eat the rabbit!
+		NewKin = kinematics:pursue(Kin, CurrentTarget),
+		
+		%% next state is eat
+		{State#state { kinematics = NewKin }, eat};
+	   
+	   true ->
+		%% else, someone else ate the rabbit
+		%% start wandering again
+		NewKin = kinematics:wander(Kin, NearbyLocations),
+		
+		%% next state is wander!
+		{State#state { kinematics = NewKin, target = nil }, wander}
+	end,
+    
+    env_manager:update_me(self(), NewKin#kin.position),
+    {next_state, NextState, NewState}.		
+
+
+eat({act, CellContent}, _From, State) ->
+    Health = State#state.health,
+    CurrentTarget = State#state.target,
+    TargetPid = CurrentTarget#actor.pid,
+    IsAlive = is_process_alive(TargetPid),
+
+    %% is there a rabbit out there?
+    if IsAlive ->
+	    io:format("Other Actors in my cell: ~p ~n", [CellContent]),
+	    
+	    %% try to eat a rabbit and update the health
+	    Rabbits = lists:filter(fun(A) -> T = A#actor.type,
+					     T == rabbit
+				   end,
+				   CellContent),
+	    
+	    {UpdatedHealth, NewTarget} = 
+		if length(Rabbits) =/= 0 ->
+			%% eat it
+			[R|_] = Rabbits,
+			carrot:eat(R#actor.pid, self()),
+			{Health + 2, nil};
+		   
+		   true ->
+			%% else, the rabbit is not here
+			{Health - 1, CurrentTarget}
+		end,
+	    
+	    NewState = State#state { health = UpdatedHealth, 
+				     target = NewTarget};
+
+       %% the rabbit is no more alive, go back to wander
+       true ->
+	    UpdatedHealth = Health - 1,
+	    NewState = State#state { health = Health - 1, 
+				     target = nil}
+    end,
+    
+    if UpdatedHealth == 0 ->
+	    {stop, normal, deallocate_me, NewState}; %% die 
+       
+       true ->
+	    if UpdatedHealth > 25 ->	    
+		    %% spawn a new wolf %% !FIXME to be implemented!
+		    ok;
+	       true -> ok
+	    end,
+	    
+	    case NewState#state.target of nil ->
+		    {reply, UpdatedHealth, wander, NewState};
+		_ ->
+		    {reply, UpdatedHealth, pursue, NewState}
+	    end
+    end.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -238,3 +302,13 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+sense(Nearby) ->
+    Rabbits = 
+	lists:filter(fun(Actor) ->
+			     T = Actor#actor.type,
+			     case T of rabbit -> true;
+				 _ -> false
+			     end
+		     end,
+		     Nearby).
+
