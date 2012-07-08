@@ -158,14 +158,14 @@ function update_canvas(msg) {
                 lines: { show: true },
                 points: { show: true}
             },
-            xaxis: {
+            /*xaxis: {
                 ticks: [0, [Math.PI/2, "\u03c0/2"], [Math.PI, "\u03c0"], [Math.PI * 3/2, "3\u03c0/2"], [Math.PI * 2, "2\u03c0"]]
             },
             yaxis: {
                 ticks: 10,
                 min: -2,
                 max: 2
-            },
+            },*/
             grid: {
                 backgroundColor: { colors: ["#fff", "#eee"] }
             }
