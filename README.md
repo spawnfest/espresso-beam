@@ -24,9 +24,9 @@ What
 where inhabitants are carrots, rabbits and wolves.
 In this world, the following things can happen:
 
-*Rabbits can eat carrots.* 
-*Wolves can eat rabbits.* 
-*Carrots... stay still and wait to be eaten.* 
+*Rabbits can eat carrots.*  
+*Wolves can eat rabbits.*  
+*Carrots... stay still and wait to be eaten.*  
 
 Our main goal was to implement the actors in such a way that the world stay as 
 balanced as possible and lasts as long as possible, before the extinction of 
