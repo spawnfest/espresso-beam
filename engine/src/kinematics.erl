@@ -116,7 +116,7 @@ pursue(Kinematics, Target) ->
     %% !FIXME to be extended when sensing_distance > 1
     CurPosition = Kinematics#kin.position,
     TargetPosition = Target#actor.location,
-    NewOrientation = pursue_orientation(CurPosition, TargetPosition),
+    NewOrientation = normalize_orientation(pursue_orientation(CurPosition, TargetPosition)),
     NewPos = orientation2position(CurPosition, NewOrientation),
     
     #kin{ position = NewPos,

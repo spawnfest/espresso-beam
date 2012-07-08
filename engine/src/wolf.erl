@@ -79,7 +79,7 @@ init([]) ->
 
 
     Kin = #kin{ position = Pos },
-    {ok, wander, #state{ kinematics=Kin, health=10 }}.
+    {ok, wander, #state{ kinematics=Kin, health=50 }}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -102,6 +102,8 @@ wander({move, Nearby, NearbyLocations}, State) ->
 
     Rabbits = sense(Nearby),
     
+    io:format("******************************Rabbits sensed: ~p ~n", [Rabbits]),
+    
     {NewState, NextState} = 
 	if length(Rabbits) > 0 ->
 		%% if there are rabbits nearby...
@@ -114,6 +116,7 @@ wander({move, Nearby, NearbyLocations}, State) ->
 		pg:esend(wolves, {chase_that_rabbit, R}),
 		
 		%% next state is pursue
+		io:format("*(***************here~n"),
 		{State#state { kinematics = NewKin, target = R }, pursue};
 	   
 	   true ->
@@ -193,7 +196,7 @@ pursue({act, CellContent}, _From, State) -> %%!FIXME refactor!
 		if length(Rabbits) =/= 0 ->
 			%% eat it
 			[R|_] = Rabbits,
-			carrot:eat(R#actor.pid, self()),
+			rabbit:eat(R#actor.pid, self()),
 			{Health + 2, nil};
 		   
 		   true ->
@@ -250,7 +253,7 @@ eat({act, CellContent}, _From, State) ->
 		if length(Rabbits) =/= 0 ->
 			%% eat it
 			[R|_] = Rabbits,
-			carrot:eat(R#actor.pid, self()),
+			rabbit:eat(R#actor.pid, self()),
 			{Health + 2, nil};
 		   
 		   true ->
@@ -336,17 +339,20 @@ handle_sync_event(_Event, _From, StateName, State) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-handle_info({chase_that_rabbit, R}, StateName, State) ->
+handle_info({pg_message, _ ,wolves,
+	     {chase_that_rabbit,R}}, StateName, State) ->
     if StateName == wander ->
+	    io:format("~p: Wolf pack mode enabled! -> Chasing ~p ~n", [self(), R]),
 	    NewState = State#state { target = R },
-	    {next_state, NewState, pursue};
+	    {next_state, pursue, NewState};
        
        true ->
 	    %% if you're already chasing a rabbit, don't care
 	    {next_state, StateName, State}
     end;
 
-handle_info(_, StateName, State) ->
+handle_info(Msg, StateName, State) ->
+    io:format("~p ~n", [Msg]),
     {next_state, StateName, State}.
 
 

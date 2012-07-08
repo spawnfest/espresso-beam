@@ -16,6 +16,7 @@
 -export([start_link/0, 
 	 wander/2,
 	 wander/3,
+	 eat/2,
 	 eat/3,
 	 flee/2,
 	 flee/3,
@@ -86,7 +87,7 @@ init([]) ->
     Kin = #kin{ position = Pos },
 
     {ok, wander, #state{ kinematics=Kin,
-		       health=10 }}.
+		       health=50 }}.
 
 %%--------------------------------------------------------------------
 %% @private
