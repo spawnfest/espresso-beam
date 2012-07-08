@@ -28,12 +28,14 @@ In this world, the following things can happen:
 *Wolves can eat rabbits.*  
 *Carrots... stay still and wait to be eaten.*  
 
-Our main goal was to implement the actors in such a way that the world stay as 
-balanced as possible and lasts as long as possible, before the extinction of 
-the species.
+Our main goal has been to 
 
-Note: Since we didn't find a graphic character for the wolf, we replaced him with the 
-infamous *tac nayn* [1]!
+ * model the world
+ * play with the world params and try to make it lasts as long as possible, i.e.
+   try to avoid the immediate extinction of all the species
+
+**Note**: Since we didn't find a graphic character for the wolf, we replaced him with the 
+infamous **tac nayn** [1]!
 
 How
 ---
