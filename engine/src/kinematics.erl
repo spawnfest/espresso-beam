@@ -34,6 +34,7 @@ wander(Kinematics, Nearby) ->
 
     %% !FIXME maybe we should implement a limit here, based on
     %% previous orientation?
+    random:seed(erlang:now()),
     OrientationDelta = random:uniform(360),
     NewOrientation = normalize_orientation(CurOrientation + OrientationDelta),
     NewPos = orientation2position(CurPosition, NewOrientation),
@@ -91,6 +92,7 @@ flee(Kinematics, Target) ->
     NewKinematics = 
 	if NextPos == TargetPosition ->
 		%% try some other position
+		random:seed(erlang:now()),
 		O = random:uniform(360),
 		NewOrientation = normalize_orientation(O),
 		NewPos = orientation2position(CurPosition, NewOrientation),
@@ -113,7 +115,7 @@ flee(Kinematics, Target) ->
 pursue(Kinematics, Target) ->
     %% !FIXME to be extended when sensing_distance > 1
     CurPosition = Kinematics#kin.position,
-    {TargetPosition, _} = Target,
+    TargetPosition = Target#actor.location,
     io:format("~n~n~n~n~nPursue, this is the Target: ~p~n~n~n~n", [TargetPosition]),
     NewOrientation = pursue_orientation(CurPosition, TargetPosition),
     NewPos = orientation2position(CurPosition, NewOrientation),

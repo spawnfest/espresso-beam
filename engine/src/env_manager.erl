@@ -227,7 +227,7 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
     SASet = sets:subtract(NASet, DASet),    
     SurvivedActors = sets:to_list(SASet),
 
-    io:format("Survived actors: ~p ~n", [SurvivedActors]),
+    io:format("Survived actors: ~p ~n", [length(SurvivedActors)]),
     
     NewState = State#state { actors=SurvivedActors,
 			     pending_updates=NewPendingUpds

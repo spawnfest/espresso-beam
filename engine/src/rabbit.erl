@@ -150,6 +150,7 @@ wander({act, _}, _From, State) ->
     UpdatedHealth = Health - 1,
     NewState = State#state { health = UpdatedHealth },
     if UpdatedHealth == 0 ->
+	    env_manager:deallocate_me(self()),
 	    {stop, normal, deallocate_me, NewState}; %% die 
        true ->
 	    {reply, UpdatedHealth, wander, NewState}
@@ -183,6 +184,7 @@ eat({act, CellContent}, _From, State) ->
     NewState = State#state { health = UpdatedHealth },
 
     if UpdatedHealth == 0 ->
+	    env_manager:deallocate_me(self()),
 	    {stop, normal, deallocate_me, NewState}; %% die 
        
        UpdatedHealth > 25 ->	    
@@ -232,6 +234,7 @@ flee({act, _}, _From, State) ->
     NewState = State#state { health = UpdatedHealth },
 
     if UpdatedHealth == 0 ->
+	    env_manager:deallocate_me(self()),
 	    {stop, normal, deallocate_me, NewState}; %% die 
        true ->
 	    {reply, UpdatedHealth, wander, NewState}

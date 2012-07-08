@@ -103,9 +103,12 @@ wander({move, Nearby, NearbyLocations}, State) ->
 	if length(Rabbits) > 0 ->
 		%% if there are rabbits nearby...
 		%% chase them!
-		%% !FIXME implement WOLF PACK HERE!
 		[R|_] = Rabbits,
 		NewKin = kinematics:pursue(Kin, R),
+		
+		%% tell all the wolves you're chasing him!
+		%% WOLF PACK! GO!
+		pg:esend(wolves, {chase_that_rabbit, R}),
 		
 		%% next state is pursue
 		{State#state { kinematics = NewKin, target = R }, pursue};
@@ -204,6 +207,7 @@ eat({act, CellContent}, _From, State) ->
     end,
     
     if UpdatedHealth == 0 ->
+	    env_manager:deallocate_me(self()),
 	    {stop, normal, deallocate_me, NewState}; %% die 
        
        true ->
@@ -270,8 +274,19 @@ handle_sync_event(_Event, _From, StateName, State) ->
 %%                   {stop, Reason, NewState}
 %% @end
 %%--------------------------------------------------------------------
-handle_info(Info, StateName, State) ->
+handle_info({chase_that_rabbit, R}, StateName, State) ->
+    if StateName == wander ->
+	    NewState = State#state { target = R },
+	    {next_state, NewState, pursue};
+       
+       true ->
+	    %% if you're already chasing a rabbit, don't care
+	    {next_state, StateName, State}
+    end;
+
+handle_info(_, StateName, State) ->
     {next_state, StateName, State}.
+
 
 %%--------------------------------------------------------------------
 %% @private
