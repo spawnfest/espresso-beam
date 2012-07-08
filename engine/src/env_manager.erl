@@ -215,22 +215,13 @@ handle_cast({update_me, ActorPid, NewPos}, State) ->
 	   true -> []
 	end,
 
-    io:format("Died actors: ~p ~n", [DiedActors]),
+    NASet = sets:from_list(NewActors),
+    DASet = sets:from_list(DiedActors),
+    SASet = sets:subtract(NASet, DASet),    
+    SurvivedActors = sets:to_list(SASet),
 
-    SurvivedActors = 
-	lists:filter(fun(A) ->
-			     P = A#actor.pid,
-			     
-			     not lists:any(fun(A1) ->
-						   P1 = A1#actor.pid,
-						   P1 == A1
-					   end,
-					   DiedActors)
-		     end,
-		     NewActors),
-    
     io:format("Survived actors: ~p ~n", [SurvivedActors]),
-
+    
     NewState = State#state { actors=SurvivedActors,
 			     pending_updates=NewPendingUpds
 			   },
@@ -359,18 +350,12 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
     
     %% FIXME ! since we are doing subtraction between sets, maybe a 
     %% using sets is a better option, here?
-    SurvivedActors = 
-	lists:filter(fun(A) ->
-			     P = A#actor.pid,
-			     
-			     not lists:any(fun(A1) ->
-						   P1 = A1#actor.pid,
-						   P1 == A1
-					   end,
-					   DiedActors)
-		     end,
-		     Actors),
-
+    ASet = sets:from_list(Actors),
+    DASet = sets:from_list(DiedActors),
+    SASet = sets:subtract(ASet, DASet),
+    
+    SurvivedActors = sets:to_list(SASet),
+    
     CellStatus = 
 	lists:foldl(fun(A, Acc) ->
 			    P = A#actor.pid,
@@ -396,11 +381,12 @@ perform_life_cycle([GivenActor|Rest], Actors, DiedActors) ->
     %% delete the actor, if it died
     case Reply of deallocate_me -> 
 
-	    lists:delete(Actor, Actors),
-	    perform_life_cycle(Rest, Actors, [Actor|DiedActors]);
+	    lists:delete(GivenActor, Actors),
+	    perform_life_cycle(Rest, Actors, [GivenActor|DiedActors]);
 	_ -> 
 	    perform_life_cycle(Rest, Actors, DiedActors)
     end.
+
 
  
 %% some help in packing/unpacking actor informations
