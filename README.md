@@ -6,13 +6,13 @@ For the impatient: how to start it all
 
 In your terminal, type:
 
-   $ cd engine
-   $ make
-   $ make start
+    $ cd engine
+    $ make
+    $ make start
 
 Then, open the following url in your browser
 
-   file:///path/to/espresso-beam/ui/index.html
+    file:///path/to/espresso-beam/ui/index.html
 
 Finally, click on the `start simulation` button. Enjoy!
 
@@ -20,20 +20,20 @@ Finally, click on the `start simulation` button. Enjoy!
 What
 ----
 
-`A tale of blah blah blah` aims at being a simulation of a `real world` (oh, well...) 
+*A tale of blah blah blah* aims at being a simulation of a *real world* (oh, well...) 
 where inhabitants are carrots, rabbits and wolves.
 Simply put, the possible dynamics in our world are:
 
-   Rabbits can eat carrots.
-   Wolves can eat rabbits.
-   Carrots... stay still and wait to be eaten.
+    *Rabbits can eat carrots.*
+    *Wolves can eat rabbits.*
+    *Carrots... stay still and wait to be eaten.*
 
 Our main goal was to implement the actors in such a way that the world stay as 
 balanced as possible and lasts as long as possible, before the extinction of 
 the species.
 
 Note: Since we didn't find a graphic character for the wolf, we replaced him with the 
-infamous [tac nayn]http://www.youtube.com/watch?v=OM-9Q0ac6Zs)!
+infamous *tac nayn* [1]!
 
 How
 ---
@@ -65,3 +65,9 @@ Carrots are implemented as gen_fsm even if they are not complex like rabbits or 
 4-Wolves:
 Wolves are complex gen_fsm such as rabbits. Their main goal is to eat as many rabbits as they can. They can tell to their pack to follow a rabbit and for this feature we have used the pg module.
 A wolf can be wandering around if he is not able to smell a rabbit around, or he can pursue a rabbit to satisfy its needs, because as for the rabbits, wolves can starve if they are not able to eat.
+
+
+Link
+----
+
+[1] http://www.youtube.com/watch?v=OM-9Q0ac6Zs
