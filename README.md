@@ -16,7 +16,6 @@ Then, open the following url in your browser
 
 Finally, click on the `start simulation` button. Enjoy!
 
-
 What
 ----
 
@@ -27,6 +26,10 @@ In this world, the following things can happen:
 *Rabbits can eat carrots.*  
 *Wolves can eat rabbits.*  
 *Carrots... stay still and wait to be eaten.*  
+
+Moreover,
+
+*Wolves can form wolves pack and chase rabbits!*
 
 Our main goal has been to 
 
@@ -39,37 +42,76 @@ infamous **tac nayn** [1]!
 
 How
 ---
-Carrots, Rabbits and Wolves
+No surprise, carrots, rabbits and wolves have been implemented by means of finite state
+machines. The hard part -- of course -- was to synchronize the processes together, avoiding  
+inconsistent states of the application.
 
+The moving behaviour of carrots and wolves has been implemented in the `kinematics` module,
+which exports the following functions:
 
-We are a Team of young and nice Italian guys. Here in Italy we have the concept of "zona Cesarini" which means "in extremis".
-It was the mid June and we were without ideas about  wht to implement during the SpawnFest 2012. So we thought at the curious exercise that Francesco Cesarini did when he was a student in Uppsala University. We got stuck for a moment thinking... Ehy... This is "zona Cesarini" for real. :-)
+    wander/2  %% wandering
+    seek/2    %% once a rabbit has seen a carrot nearby, try to approach it
+    flee/2    %% once a rabbit has seen a wolf nearby, run away!
+    pursue/2  %% once a wolf has seen a rabbit nearby, chase it!
 
+At each moving step, both wolves and rabbits lose a bit of their health.
+If they are able to eat something, their health level will raise.
+If they don't eat for a long time, they will die.
 
+Every time a carrot is eaten, a new carrot is spawned and added to the world, 
+keeping the number of carrots constant.
 
-Obviously everything is a process from the wolves to the carrot. And everything has been created trying to use OTP behaviours the right way, with supervisor trees and groups to implement restart strategies and the wolves pack feature.
+Finally, the *wolf pack* behaviour, has been implemented by the experimental
+`pg` module: when a wolf sees a rabbit close to him, it immediately notifies
+his fellows calling
 
-The environment is visible from a Front-End which communicates with the Back-End through Web-Sockets taking advantage of the best Cowboy features.
+    pg:esend(wolves, {chase_that_rabbit, R})
 
-This is an extremely extensible project. We have developed the main features during those 48 hours but there are lots of features which need to be implemented in the future. Both for fun and for an increase of our knowledge.
+All wandering wolves will immediately chase that rabbit.
 
-Now a couple of words about the main actors of the game.
+The user interface, that is, the html page that you opened before in your browser, 
+contains an HTML5 canvas, which at every game step by a javscript controller.
 
-2- Rabbits:
-Rabbits are impemented as gen_fsm. Their main goal is to eat as many carrots as they can without being eaten by wolves.
-We have thought at gen_fsm because a rabbit can be in different states during the application lifecycle. A rabbit can be wandering because he has no fear of a close wolf and he has not seen any carrots around.
-He obviously can eat a carrot to increase its Healt, or he has to flee away from a wolf. Obiouvsly if a rabbit is not able to eat a carrot for some time he can starve.
-In the future the rabbits must be able to give advice to their friends about wolves position and for this feature we will use the pg module.
+To get the world status, we query the game engine using websockets.
+The game engine makes use of cowboy to handle the request, collects the 
+state of the world, then gives it back in JSON format.
 
-3- Carrots:
-Carrots are implemented as gen_fsm even if they are not complex like rabbits or wolves. A carrot after the spawning is stuck in its position waiting for someone which wants to eat it. After a carrot is eaten the Carrots Supervisor re-spawn another carrot to keep food for our beloved rabbits.
+Who
+---
+Loris Fichera <loris.fichera@gmail.com> 
+Mirko Bonadei <mirko.bonadei@gmail.com>
+Paolo D'Incau <paolo.dincau@gmail.com> 
 
-4-Wolves:
-Wolves are complex gen_fsm such as rabbits. Their main goal is to eat as many rabbits as they can. They can tell to their pack to follow a rabbit and for this feature we have used the pg module.
-A wolf can be wandering around if he is not able to smell a rabbit around, or he can pursue a rabbit to satisfy its needs, because as for the rabbits, wolves can starve if they are not able to eat.
+Why?
+----
 
+Here in Italy we have the concept of *zona Cesarini*, which means *in extremis*.
+Well, it was mid June and we were, still, without ideas for the spawnfest.
+Suddendly, a nice thought came up to Mirko's mind... he remembered of a 
+curious exercise that *Francesco Cesarini* did when he was a student in Uppsala University [2].
+*We can make something similar!*
+Well, this has been our *zona Cesarini*, for real. :)
 
-Link
+What else?
+----------
+There are a lot of things to do to make *A tale of blah blah blah* a better software.
+
+But, hey, spawnfest it's just 48 hours and... we have *been working from three 
+different places* (one of us has been even *travelling* while doing the spawnfest) and,
+last but not least, *we never met in person before the spawnfest*. 
+Being able to take part to the spawnfest and submit something is our little victory. :)
+
+Going to practical ground, the following things could be implemented/improved:
+
+ * actors must not go outside of the playing field
+ * kinematics can be improved: sometimes movements are not too... *intelligent* :)
+ * implement spawn of new rabbits/wolves when their health level goes over a certain threshold
+ * let the user choose the parametes from the html page
+ * refactor env_manager and use ets instead of lists to store the game status
+ * names harmonization
+
+Links
 ----
 
 [1] http://www.youtube.com/watch?v=OM-9Q0ac6Zs
+[2] http://pdincau.wordpress.com/2011/04/25/an-interview-with-francesco-cesarini-francescoc/

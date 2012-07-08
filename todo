@@ -4,7 +4,6 @@ Things to do
  * engine
    * implement the wolf - DONE
    * implement the "wolf pack" behaviour (wolves calling other wolves when they sense a rabbit)
-   * duplication of rabbits/wolves 
    * "eat" action (with process dying) + try/catch in env_manager
    * implement the flee behaviour -- DONE
    * implement the pursue behaviour -- DONE
