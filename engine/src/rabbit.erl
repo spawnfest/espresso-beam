@@ -113,16 +113,17 @@ idle({next_step}, State) ->
 			  end,
 			  Nearby),
     
-    Carrots = lists:filter(fun({{X,Y}, Content}) ->
-				   lists:any(fun(What) ->
-						     case What of {_, carrot} ->
-							     true;
-							 _ -> false
-						     end
-					     end,
-					     Content)
-			      end,
-			   Nearby),
+    Carrots = 
+	lists:filter(fun({{X,Y}, Content}) ->
+			     lists:any(fun(What) ->
+					       case What of {_, carrot} ->
+						       true;
+						   _ -> false
+					       end
+				       end,
+				       Content)
+		     end,
+		     Nearby),
 
     io:format("after sensing nearby cells~n"),
     

@@ -30,21 +30,25 @@
 %%--------------------------------------------------------------------
 wander(Kinematics, Nearby) ->
     CurPosition = Kinematics#kin.position,
+    CurOrientation = Kinematics#kin.orientation,
 
     %% !FIXME maybe we should implement a limit here, based on
     %% previous orientation?
-    O = random:uniform(360),
-    NewOrientation = normalize_orientation(O),
+    OrientationDelta = random:uniform(80),
+    NewOrientation = normalize_orientation(CurOrientation + OrientationDelta),
     NewPos = orientation2position(CurPosition, NewOrientation),
     
     NewKinematics =
 	%% if the position is valid
-	case lists:any(fun({X,Y}) -> {X,Y} == NewPos end, Nearby) of
-	    true -> #kin{ position = NewPos,
-			  orientation = NewOrientation };
+	case lists:any(fun({X,Y}) -> {X,Y} == NewPos end, Nearby) of	    
+	    true -> 
+		io:format("~p ~p~n", [NewPos, CurPosition]),
+		#kin{ position = NewPos,
+		      orientation = NewOrientation };
 	    
 	    _ -> %% stay still
 		 %% !FIXME canvas borders are going to be a TRAP!
+		io:format("staying still~n", []),
 		Kinematics
 	end.
 
@@ -59,9 +63,10 @@ wander(Kinematics, Nearby) ->
 seek(Kinematics, Target) ->
     %% compute the new orientation, according to the move we are going
     %% to perform
+    {TargetPosition, _} = Target,
+    
     CurPosition = Kinematics#kin.position,
-    NewOrientation = position2orientation(CurPosition, Target),
-    TargetPosition = Target#actor.location,
+    NewOrientation = position2orientation(CurPosition, TargetPosition),
     
     Kinematics#kin{ orientation = NewOrientation,
 		    position = TargetPosition }.
@@ -78,7 +83,7 @@ flee(Kinematics, Target) ->
     %% run away from target!
     CurPosition = Kinematics#kin.position,
     PrevOrientation = Kinematics#kin.orientation,
-    TargetPosition = Target#actor.location,
+    {TargetPosition, _} = Target,
     
     %% if possible, keep running in the same direction
     NextPos = orientation2position(CurPosition, PrevOrientation),
@@ -142,6 +147,7 @@ orientation2position({X, Y}, Orient) when Orient == 270 -> {X , Y - 1};
 orientation2position({X, Y}, Orient) when Orient == 315 -> {X + 1, Y - 1}.
 
 %% position2orientation
+position2orientation({X, Y}, {A, Z}) when (A == X) and (Z == Y) -> 0.0;
 position2orientation({X, Y}, {A, Z}) when (A == X + 1) and (Z == Y) -> 0.0;
 position2orientation({X, Y}, {A, Z}) when (A == X + 1) and (Z == Y + 1) -> 45.0;
 position2orientation({X, Y}, {A, Z}) when (A == X) and (Z == Y + 1) -> 90.0;
