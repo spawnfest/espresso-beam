@@ -1,10 +1,49 @@
 A Tale of Wolves, Rabbits and Carrots
+=====================================
 
-1- Introduction:
+For the impatient: how to start it all
+--------------------------------------
+
+In your terminal, type:
+
+   $ cd engine
+   $ make
+   $ make start
+
+Then, open the following url in your browser
+
+   file:///path/to/espresso-beam/ui/index.html
+
+Finally, click on the `start simulation` button. Enjoy!
+
+
+What
+----
+
+`A tale of blah blah blah` aims at being a simulation of a `real world` (oh, well...) 
+where inhabitants are carrots, rabbits and wolves.
+Simply put, the possible dynamics in our world are:
+
+   Rabbits can eat carrots.
+   Wolves can eat rabbits.
+   Carrots... stay still and wait to be eaten.
+
+Our main goal was to implement the actors in such a way that the world stay as 
+balanced as possible and lasts as long as possible, before the extinction of 
+the species.
+
+Note: Since we didn't find a graphic character for the wolf, we replaced him with the 
+infamous [tac nayn]http://www.youtube.com/watch?v=OM-9Q0ac6Zs)!
+
+How
+---
+Carrots, Rabbits and Wolves
+
+
 We are a Team of young and nice Italian guys. Here in Italy we have the concept of "zona Cesarini" which means "in extremis".
 It was the mid June and we were without ideas about  wht to implement during the SpawnFest 2012. So we thought at the curious exercise that Francesco Cesarini did when he was a student in Uppsala University. We got stuck for a moment thinking... Ehy... This is "zona Cesarini" for real. :-)
 
-The project is a simulation of a real world where there are not humans but only carrots, rabbits and wolves. The main goal is to implement all the actors' behavoiurs and all the concurrency that a system like this needs to be close to the reality as much as possible. The system should be well balanced to avoid the extinction of the species.
+
 
 Obviously everything is a process from the wolves to the carrot. And everything has been created trying to use OTP behaviours the right way, with supervisor trees and groups to implement restart strategies and the wolves pack feature.
 
